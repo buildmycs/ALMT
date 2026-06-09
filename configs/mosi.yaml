@@ -11,11 +11,11 @@ base:
 
 dataset:
   datasetName: mosi
-  dataPath: /workspace/datasets/MSA_Datasets/MOSI/unaligned_50.pkl 
+  dataPath: ./datasets/MOSI/unaligned_50.pkl
   train_mode: regression
 
-model:  
-  bert_pretrained: bert-base-uncased
+model:
+  bert_pretrained: ./pretrained/bert-base-uncased
 
   # Projection Layer Parameters
   l_input_dim: 768
