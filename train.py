@@ -11,7 +11,7 @@ import yaml
 
 
 parser = argparse.ArgumentParser() 
-parser.add_argument('--config_file', type=str, default='configs/sims.yaml') 
+parser.add_argument('--config_file', type=str, default='configs/mosi.yaml') 
 parser.add_argument('--seed', type=int, default=-1) 
 parser.add_argument('--gpu_id', type=int, default=-1) 
 opt = parser.parse_args()
@@ -122,9 +122,9 @@ def train(model, data_loader, optimizer, loss_fn, metrics_fn):
 
         loss_recorder.update(loss.item(), batchsize)
 
+        optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        optimizer.zero_grad()
 
         y_pred.append(output.cpu())
         y_true.append(label.cpu())

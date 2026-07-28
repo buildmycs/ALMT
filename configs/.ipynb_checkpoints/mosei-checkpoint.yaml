@@ -11,7 +11,7 @@ base:
 
 dataset:
   datasetName: mosei
-  dataPath: ./datasets/mosei/unaligned_50.pkl
+  dataPath: ./datasets/MOSEI/unaligned_50.pkl
   train_mode: regression
 
 model:

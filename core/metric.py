@@ -49,12 +49,12 @@ class MetricsTop():
         non_zeros_binary_truth = (test_truth[non_zeros] > 0)
         non_zeros_binary_preds = (test_preds[non_zeros] > 0)
 
-        non_zeros_acc2 = accuracy_score(non_zeros_binary_preds, non_zeros_binary_truth)
+        non_zeros_acc2 = accuracy_score(non_zeros_binary_truth, non_zeros_binary_preds)
         non_zeros_f1_score = f1_score(non_zeros_binary_truth, non_zeros_binary_preds, average='weighted')
 
         binary_truth = (test_truth >= 0)
         binary_preds = (test_preds >= 0)
-        acc2 = accuracy_score(binary_preds, binary_truth)
+        acc2 = accuracy_score(binary_truth, binary_preds)
         f_score = f1_score(binary_truth, binary_preds, average='weighted')
         
         eval_results = {

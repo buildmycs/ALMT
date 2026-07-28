@@ -1,7 +1,7 @@
 base:
   project_name: ALMT_Demo
   ckpt_root: ./ckpt
-  seed: 0
+  seed: 7
   lr: 0.0001
   weight_decay: 0.0001
   batch_size: 64
@@ -10,8 +10,8 @@ base:
   gpu_id: 1
 
 dataset:
-  datasetName: mosei
-  dataPath: ./datasets/mosei/unaligned_50.pkl
+  datasetName: mosi
+  dataPath: ./datasets/MOSI/unaligned_50.pkl
   train_mode: regression
 
 model:
@@ -19,8 +19,8 @@ model:
 
   # Projection Layer Parameters
   l_input_dim: 768
-  a_input_dim: 74
-  v_input_dim: 35
+  a_input_dim: 5
+  v_input_dim: 20
   l_proj_dst_dim: 128
   a_proj_dst_dim: 128
   v_proj_dst_dim: 128
@@ -29,7 +29,7 @@ model:
   token_len: 8
   token_dim: 128
   l_input_length: 50
-  a_input_length: 500
+  a_input_length: 375
   v_input_length: 500
   proj_input_dim: 128
   proj_depth: 1
@@ -50,4 +50,4 @@ model:
   # Fusion Layer Parameters
   fusion_heads: 8
   fusion_mlp_dim: 128
-  fusion_layer_depth: 4
+  fusion_layer_depth: 2
