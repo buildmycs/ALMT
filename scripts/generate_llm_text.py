@@ -78,17 +78,17 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--data-path",
-        default="datasets/MOSI/unaligned_50.pkl",
+        default="datasets/mosi/unaligned_50.pkl",
         help="Original MMSA-format PKL. It is opened read-only.",
     )
     parser.add_argument(
         "--model-path",
-        default="pretrained/Qwen2.5-7B-Instruct",
+        default="../Qwen2.5-7B-Instruct",
         help="Local Qwen2.5-Instruct directory on AutoDL.",
     )
     parser.add_argument(
         "--output-path",
-        default="datasets/MOSI/qwen25_enhanced.jsonl",
+        default="datasets/mosi/qwen25_enhanced.jsonl",
         help="Append-only enhancement records.",
     )
     parser.add_argument(
@@ -99,6 +99,7 @@ def parse_args() -> argparse.Namespace:
         help="Tune/freeze the prompt on train/valid before generating test.",
     )
     parser.add_argument("--context-window", type=int, default=2)
+    #设置拿到上下两个上下文窗口的文本
     parser.add_argument("--batch-size", type=int, default=64)
     parser.add_argument("--max-model-len", type=int, default=2048)
     parser.add_argument("--max-tokens", type=int, default=128)
