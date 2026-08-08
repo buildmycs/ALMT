@@ -3,8 +3,10 @@ Training entry point for the dual-text ALMT variant.
 """
 
 import argparse
+import csv
 import os
 
+import numpy as np
 import torch
 import yaml
 from tensorboardX import SummaryWriter
@@ -53,6 +55,62 @@ def _average_fusion_stats(meters):
     return {name: meter.value_avg for name, meter in meters.items()}
 
 
+def _save_best_artifacts(
+    model,
+    optimizer,
+    epoch,
+    validation_ret,
+    test_ret,
+    test_dataset,
+    save_path,
+):
+    checkpoint_path = os.path.join(save_path, "best_validation_model.pth")
+    torch.save(
+        {
+            "epoch": epoch,
+            "state_dict": model.state_dict(),
+            "optimizer": optimizer.state_dict(),
+            "validation_results": validation_ret["results"],
+            "test_results": test_ret["results"],
+        },
+        checkpoint_path,
+    )
+
+    predictions = test_ret["predictions"].view(-1).numpy()
+    labels = test_ret["labels"].view(-1).numpy()
+    prediction_path = os.path.join(save_path, "best_test_predictions.npz")
+    np.savez_compressed(
+        prediction_path,
+        predictions=predictions,
+        labels=labels,
+        epoch=np.asarray(epoch, dtype=np.int64),
+    )
+
+    csv_path = os.path.join(save_path, "best_test_predictions.csv")
+    raw_text_llm = getattr(test_dataset, "raw_text_llm", None)
+    with open(csv_path, "w", encoding="utf-8", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(
+            ["index", "id", "label", "prediction", "raw_text", "raw_text_llm"]
+        )
+        for index, (label, prediction) in enumerate(zip(labels, predictions)):
+            enhanced_text = "" if raw_text_llm is None else raw_text_llm[index]
+            writer.writerow(
+                [
+                    index,
+                    test_dataset.ids[index],
+                    float(label),
+                    float(prediction),
+                    test_dataset.raw_text[index],
+                    enhanced_text,
+                ]
+            )
+
+    print(f"Saved best checkpoint: {checkpoint_path}")
+    print(f"Saved test predictions: {prediction_path}")
+    print(f"Saved readable predictions: {csv_path}")
+
+
 def run_epoch(model, data_loader, loss_fn, metrics_fn, optimizer=None):
     training = optimizer is not None
     model.train(training)
@@ -91,6 +149,8 @@ def run_epoch(model, data_loader, loss_fn, metrics_fn, optimizer=None):
         "results": metrics_fn(prediction, label),
         "loss_recorder": loss_recorder,
         "fusion_stats": _average_fusion_stats(fusion_meters),
+        "predictions": prediction,
+        "labels": label,
     }
 
 
@@ -116,6 +176,7 @@ def main():
     validation_recorder = results_recorder()
     test_recorder = results_recorder()
     writer = SummaryWriter(logdir=log_path)
+    best_validation_mae = float("inf")
 
     for epoch in range(1, args.base.n_epochs + 1):
         training_ret = run_epoch(
@@ -133,6 +194,21 @@ def main():
         test_recorder.update(test_ret["results"], epoch)
         best_validation = validation_recorder.get_best_results()
         best_test = test_recorder.get_best_results()
+
+        validation_mae = torch.mean(
+            torch.abs(validation_ret["predictions"] - validation_ret["labels"])
+        ).item()
+        if validation_mae < best_validation_mae:
+            best_validation_mae = validation_mae
+            _save_best_artifacts(
+                model=model,
+                optimizer=optimizer,
+                epoch=epoch,
+                validation_ret=validation_ret,
+                test_ret=test_ret,
+                test_dataset=data_loader["test"].dataset,
+                save_path=save_path,
+            )
 
         print(f"\n----------------- Results Epoch {epoch} -----------------")
         print(f'Learning Rate: {optimizer.param_groups[0]["lr"]}')
