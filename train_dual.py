@@ -12,6 +12,7 @@ import yaml
 from tensorboardX import SummaryWriter
 
 from core.dataset_dual import DualTextMMDataLoader
+from core.intensity_objective import build_sentiment_objective
 from core.metric import MetricsTop
 from core.scheduler import get_scheduler
 from core.utils import AverageMeter, dict_to_namespace, results_recorder, setup_seed
@@ -79,28 +80,54 @@ def _save_best_artifacts(
     predictions = test_ret["predictions"].view(-1).numpy()
     labels = test_ret["labels"].view(-1).numpy()
     prediction_path = os.path.join(save_path, "best_test_predictions.npz")
-    np.savez_compressed(
-        prediction_path,
-        predictions=predictions,
-        labels=labels,
-        epoch=np.asarray(epoch, dtype=np.int64),
-    )
+    prediction_payload = {
+        "predictions": predictions,
+        "labels": labels,
+        "epoch": np.asarray(epoch, dtype=np.int64),
+    }
+    for key in ("regression_predictions", "ordinal_predictions"):
+        if key in test_ret:
+            prediction_payload[key] = test_ret[key].view(-1).numpy()
+    np.savez_compressed(prediction_path, **prediction_payload)
 
     csv_path = os.path.join(save_path, "best_test_predictions.csv")
     raw_text_llm = getattr(test_dataset, "raw_text_llm", None)
+    regression_predictions = prediction_payload.get("regression_predictions")
+    ordinal_predictions = prediction_payload.get("ordinal_predictions")
     with open(csv_path, "w", encoding="utf-8", newline="") as file:
         writer = csv.writer(file)
         writer.writerow(
-            ["index", "id", "label", "prediction", "raw_text", "raw_text_llm"]
+            [
+                "index",
+                "id",
+                "label",
+                "prediction",
+                "regression_prediction",
+                "ordinal_prediction",
+                "raw_text",
+                "raw_text_llm",
+            ]
         )
         for index, (label, prediction) in enumerate(zip(labels, predictions)):
             enhanced_text = "" if raw_text_llm is None else raw_text_llm[index]
+            regression_prediction = (
+                ""
+                if regression_predictions is None
+                else float(regression_predictions[index])
+            )
+            ordinal_prediction = (
+                ""
+                if ordinal_predictions is None
+                else float(ordinal_predictions[index])
+            )
             writer.writerow(
                 [
                     index,
                     test_dataset.ids[index],
                     float(label),
                     float(prediction),
+                    regression_prediction,
+                    ordinal_prediction,
                     test_dataset.raw_text[index],
                     enhanced_text,
                 ]
@@ -116,8 +143,13 @@ def run_epoch(model, data_loader, loss_fn, metrics_fn, optimizer=None):
     model.train(training)
 
     loss_recorder = AverageMeter()
+    loss_meters = {}
     fusion_meters = {}
     predictions, labels = [], []
+    component_predictions = {
+        "regression_predictions": [],
+        "ordinal_predictions": [],
+    }
 
     for data in data_loader:
         visual = data["vision"].to(device)
@@ -128,30 +160,62 @@ def run_epoch(model, data_loader, loss_fn, metrics_fn, optimizer=None):
 
         if training:
             optimizer.zero_grad()
-            output = model(visual, audio, text, text_llm)
-            loss = loss_fn(output, label)
+            model_output = model(
+                visual,
+                audio,
+                text,
+                text_llm,
+                return_aux=loss_fn.requires_auxiliary_outputs,
+            )
+            loss, loss_values = loss_fn(model_output, label)
             loss.backward()
             optimizer.step()
         else:
             with torch.no_grad():
-                output = model(visual, audio, text, text_llm)
-                loss = loss_fn(output, label)
+                model_output = model(
+                    visual,
+                    audio,
+                    text,
+                    text_llm,
+                    return_aux=loss_fn.requires_auxiliary_outputs,
+                )
+                loss, loss_values = loss_fn(model_output, label)
+
+        output = (
+            model_output["prediction"]
+            if isinstance(model_output, dict)
+            else model_output
+        )
 
         batch_size = visual.size(0)
         loss_recorder.update(loss.item(), batch_size)
+        for name, value in loss_values.items():
+            loss_meters.setdefault(name, AverageMeter()).update(value, batch_size)
         _update_fusion_meters(model, fusion_meters)
         predictions.append(output.detach().cpu())
         labels.append(label.detach().cpu())
+        if isinstance(model_output, dict):
+            component_predictions["regression_predictions"].append(
+                model_output["regression_prediction"].detach().cpu()
+            )
+            component_predictions["ordinal_predictions"].append(
+                model_output["ordinal_prediction"].detach().cpu()
+            )
 
     prediction = torch.cat(predictions)
     label = torch.cat(labels)
-    return {
+    epoch_result = {
         "results": metrics_fn(prediction, label),
         "loss_recorder": loss_recorder,
+        "loss_components": _average_fusion_stats(loss_meters),
         "fusion_stats": _average_fusion_stats(fusion_meters),
         "predictions": prediction,
         "labels": label,
     }
+    for name, values in component_predictions.items():
+        if values:
+            epoch_result[name] = torch.cat(values)
+    return epoch_result
 
 
 def main():
@@ -169,7 +233,12 @@ def main():
         weight_decay=args.base.weight_decay,
     )
     scheduler_warmup = get_scheduler(optimizer, args)
-    loss_fn = torch.nn.MSELoss()
+    loss_fn = build_sentiment_objective(
+        args, data_loader["train"].dataset.labels["M"]
+    ).to(device)
+    print("-----------------objective-----------------")
+    print(loss_fn.describe())
+    print("-------------------------------------------")
     metrics_fn = MetricsTop().getMetics(args.dataset.datasetName)
 
     training_recorder = results_recorder()
@@ -179,6 +248,7 @@ def main():
     best_validation_mae = float("inf")
 
     for epoch in range(1, args.base.n_epochs + 1):
+        loss_fn.set_epoch(epoch)
         training_ret = run_epoch(
             model, data_loader["train"], loss_fn, metrics_fn, optimizer
         )
@@ -215,6 +285,7 @@ def main():
         print(f'Training Results: {training_ret["results"]}')
         print(f'Validation Results: {validation_ret["results"]}')
         print(f'Test Results: {test_ret["results"]}')
+        print(f'Training Objective: {training_ret["loss_components"]}')
         if training_ret["fusion_stats"]:
             print(f'Dual-text Fusion: {training_ret["fusion_stats"]}')
         print(
@@ -246,6 +317,13 @@ def main():
         )
         for name, value in training_ret["fusion_stats"].items():
             writer.add_scalar(f"dual_text/{name}", value, epoch)
+        for name, value in training_ret["loss_components"].items():
+            writer.add_scalar(f"objective/{name}", value, epoch)
+
+        ordinal_thresholds = model.get_ordinal_thresholds()
+        if ordinal_thresholds is not None:
+            for index, value in enumerate(ordinal_thresholds.tolist()):
+                writer.add_scalar(f"ordinal/threshold_{index}", value, epoch)
 
         scheduler_warmup.step()
 

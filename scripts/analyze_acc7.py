@@ -35,6 +35,19 @@ def parse_args():
         default="Acc-7 Confusion Matrix",
         help="Title used in the generated figure.",
     )
+    parser.add_argument(
+        "--prediction-key",
+        default=None,
+        help=(
+            "Prediction array/column to analyze. Defaults to predictions for "
+            "NPZ and prediction for CSV."
+        ),
+    )
+    parser.add_argument(
+        "--label-key",
+        default=None,
+        help="Label array/column. Usually inferred automatically.",
+    )
     parser.add_argument("--dpi", type=int, default=300)
     return parser.parse_args()
 
@@ -48,16 +61,21 @@ def _find_npz_key(data, candidates):
     )
 
 
-def load_predictions(path):
+def load_predictions(path, requested_prediction_key=None, requested_label_key=None):
     suffix = path.suffix.lower()
     if suffix == ".npz":
         with np.load(path, allow_pickle=False) as data:
-            prediction_key = _find_npz_key(
+            prediction_key = requested_prediction_key or _find_npz_key(
                 data, ("predictions", "prediction", "y_pred", "pred")
             )
-            label_key = _find_npz_key(
+            label_key = requested_label_key or _find_npz_key(
                 data, ("labels", "label", "y_true", "truth")
             )
+            if prediction_key not in data or label_key not in data:
+                raise KeyError(
+                    f"Requested keys {prediction_key!r}, {label_key!r}; "
+                    f"available keys: {list(data.keys())}"
+                )
             predictions = np.asarray(data[prediction_key], dtype=np.float64)
             labels = np.asarray(data[label_key], dtype=np.float64)
     elif suffix == ".csv":
@@ -65,7 +83,7 @@ def load_predictions(path):
         with open(path, encoding="utf-8-sig", newline="") as file:
             reader = csv.DictReader(file)
             fieldnames = reader.fieldnames or []
-            prediction_key = next(
+            prediction_key = requested_prediction_key or next(
                 (
                     key
                     for key in ("prediction", "predictions", "y_pred", "pred")
@@ -73,7 +91,7 @@ def load_predictions(path):
                 ),
                 None,
             )
-            label_key = next(
+            label_key = requested_label_key or next(
                 (
                     key
                     for key in ("label", "labels", "y_true", "truth")
@@ -284,7 +302,11 @@ def main():
     )
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    predictions, labels = load_predictions(prediction_path)
+    predictions, labels = load_predictions(
+        prediction_path,
+        requested_prediction_key=args.prediction_key,
+        requested_label_key=args.label_key,
+    )
     predicted_classes = to_acc7_class(predictions)
     true_classes = to_acc7_class(labels)
     counts = build_confusion_matrix(true_classes, predicted_classes)

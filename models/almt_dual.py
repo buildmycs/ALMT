@@ -9,6 +9,7 @@ from torch import nn
 from .almt_layer import CrossTransformer, HhyperLearningEncoder, Transformer
 from .bert import BertTextEncoder
 from .dual_text_fusion import GatedCrossTextFusion
+from .intensity_heads import IntensityProjectionHead, MonotonicOrdinalHead
 
 
 class DualTextALMT(nn.Module):
@@ -19,6 +20,14 @@ class DualTextALMT(nn.Module):
         self.text_fusion_mode = getattr(
             args, "dual_fusion_mode", "gated_cross"
         ).lower()
+        self.use_intensity_objective = getattr(
+            args, "use_intensity_objective", False
+        )
+        self.ordinal_prediction_weight = float(
+            getattr(args, "ordinal_prediction_weight", 0.0)
+        )
+        if not 0.0 <= self.ordinal_prediction_weight <= 1.0:
+            raise ValueError("ordinal_prediction_weight must be in [0, 1]")
         supported_modes = {"gated_cross", "mean", "original", "enhanced"}
         if self.text_fusion_mode not in supported_modes:
             raise ValueError(
@@ -110,6 +119,18 @@ class DualTextALMT(nn.Module):
             mlp_dim=args.fusion_mlp_dim,
         )
         self.regression_layer = nn.Linear(args.token_dim, 1)
+        if self.use_intensity_objective:
+            self.ordinal_head = MonotonicOrdinalHead(args.token_dim)
+            self.intensity_projection = IntensityProjectionHead(
+                input_dim=args.token_dim,
+                projection_dim=getattr(
+                    args, "contrastive_projection_dim", 64
+                ),
+                dropout=getattr(args, "contrastive_projection_dropout", 0.1),
+            )
+        else:
+            self.ordinal_head = None
+            self.intensity_projection = None
 
     def _encode_text_pair(self, original_text, enhanced_text):
         if original_text.shape != enhanced_text.shape:
@@ -145,7 +166,14 @@ class DualTextALMT(nn.Module):
             return enhanced_hidden
         return original_hidden
 
-    def forward(self, x_visual, x_audio, x_text, x_text_llm):
+    def forward(
+        self,
+        x_visual,
+        x_audio,
+        x_text,
+        x_text_llm,
+        return_aux=False,
+    ):
         batch_size = x_visual.size(0)
         if x_audio.size(0) != batch_size or x_text.size(0) != batch_size:
             raise ValueError("visual, audio and text batch sizes must match")
@@ -169,12 +197,37 @@ class DualTextALMT(nn.Module):
             h_t_list, h_a, h_v, h_hyper
         )
         feat = self.fusion_layer(h_hyper, h_t_list[-1])[:, 0]
-        return self.regression_layer(feat)
+        regression_prediction = self.regression_layer(feat)
+
+        if not self.use_intensity_objective:
+            return regression_prediction
+
+        ordinal_logits, ordinal_prediction = self.ordinal_head(feat)
+        weight = self.ordinal_prediction_weight
+        prediction = (
+            (1.0 - weight) * regression_prediction
+            + weight * ordinal_prediction
+        )
+        if not return_aux:
+            return prediction
+
+        return {
+            "prediction": prediction,
+            "regression_prediction": regression_prediction,
+            "ordinal_prediction": ordinal_prediction,
+            "ordinal_logits": ordinal_logits,
+            "contrastive_features": self.intensity_projection(feat),
+        }
 
     def get_dual_text_stats(self):
         if self.dual_text_fusion is None:
             return {}
         return self.dual_text_fusion.get_last_stats()
+
+    def get_ordinal_thresholds(self):
+        if self.ordinal_head is None:
+            return None
+        return self.ordinal_head.thresholds().detach().cpu()
 
 
 def build_model(args):
