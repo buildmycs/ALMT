@@ -6,7 +6,7 @@ base:
   weight_decay: 0.0001
   # Shared BERT sees 2 * batch_size sequences. Start at 32 on the RTX 5090.
   batch_size: 32
-  n_epochs: 50
+  n_epochs: 200
   num_workers: 8
   gpu_id: 0
 
