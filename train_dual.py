@@ -91,29 +91,32 @@ def _save_best_checkpoint(
     return checkpoint_path
 
 
-def _save_selected_test_artifacts(
-    test_ret,
-    test_dataset,
-    selection_info,
+def _save_prediction_artifacts(
+    epoch_ret,
+    dataset,
+    epoch,
     save_path,
+    split_name,
 ):
-    epoch = selection_info["selected_epoch"]
-
-    predictions = test_ret["predictions"].view(-1).numpy()
-    labels = test_ret["labels"].view(-1).numpy()
-    prediction_path = os.path.join(save_path, "best_test_predictions.npz")
+    predictions = epoch_ret["predictions"].view(-1).numpy()
+    labels = epoch_ret["labels"].view(-1).numpy()
+    prediction_path = os.path.join(
+        save_path, f"best_{split_name}_predictions.npz"
+    )
     prediction_payload = {
         "predictions": predictions,
         "labels": labels,
         "epoch": np.asarray(epoch, dtype=np.int64),
     }
     for key in ("regression_predictions", "ordinal_predictions"):
-        if key in test_ret:
-            prediction_payload[key] = test_ret[key].view(-1).numpy()
+        if key in epoch_ret:
+            prediction_payload[key] = epoch_ret[key].view(-1).numpy()
     np.savez_compressed(prediction_path, **prediction_payload)
 
-    csv_path = os.path.join(save_path, "best_test_predictions.csv")
-    raw_text_llm = getattr(test_dataset, "raw_text_llm", None)
+    csv_path = os.path.join(
+        save_path, f"best_{split_name}_predictions.csv"
+    )
+    raw_text_llm = getattr(dataset, "raw_text_llm", None)
     regression_predictions = prediction_payload.get("regression_predictions")
     ordinal_predictions = prediction_payload.get("ordinal_predictions")
     with open(csv_path, "w", encoding="utf-8", newline="") as file:
@@ -145,15 +148,35 @@ def _save_selected_test_artifacts(
             writer.writerow(
                 [
                     index,
-                    test_dataset.ids[index],
+                    dataset.ids[index],
                     float(label),
                     float(prediction),
                     regression_prediction,
                     ordinal_prediction,
-                    test_dataset.raw_text[index],
+                    dataset.raw_text[index],
                     enhanced_text,
                 ]
             )
+
+    print(f"Saved best-{split_name} predictions: {prediction_path}")
+    print(f"Saved readable best-{split_name} predictions: {csv_path}")
+    return prediction_path, csv_path
+
+
+def _save_selected_test_artifacts(
+    test_ret,
+    test_dataset,
+    selection_info,
+    save_path,
+):
+    epoch = selection_info["selected_epoch"]
+    _save_prediction_artifacts(
+        epoch_ret=test_ret,
+        dataset=test_dataset,
+        epoch=epoch,
+        save_path=save_path,
+        split_name="test",
+    )
 
     selection_report = dict(selection_info)
     selection_report["test_results"] = test_ret["results"]
@@ -166,8 +189,6 @@ def _save_selected_test_artifacts(
             indent=2,
         )
 
-    print(f"Saved test predictions: {prediction_path}")
-    print(f"Saved readable predictions: {csv_path}")
     print(f"Saved selection report: {report_path}")
 
 
@@ -315,13 +336,21 @@ def main():
         )
 
         if selector.consider(epoch, validation_ret):
+            selection_info = selector.as_dict()
             _save_best_checkpoint(
                 model=model,
                 optimizer=optimizer,
                 epoch=epoch,
                 validation_ret=validation_ret,
-                selection_info=selector.as_dict(),
+                selection_info=selection_info,
                 save_path=save_path,
+            )
+            _save_prediction_artifacts(
+                epoch_ret=validation_ret,
+                dataset=data_loader["valid"].dataset,
+                epoch=epoch,
+                save_path=save_path,
+                split_name="validation",
             )
 
         print(f"\n----------------- Results Epoch {epoch} -----------------")

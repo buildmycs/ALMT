@@ -75,7 +75,7 @@ python train_dual.py \
 
 原来的 `configs/mosi_dual_c4.yaml` 没有启用强度模块，仍可作为 Dual-Gate 基线。
 
-最佳 validation MAE 轮会额外保存：
+由配置中的 validation 指标选出的最佳轮会额外保存：
 
 - `prediction`：用于正式指标的融合连续预测；
 - `regression_prediction`：纯回归头预测；
@@ -85,8 +85,14 @@ python train_dual.py \
 
 ```bash
 python scripts/analyze_acc7.py \
+  --predictions ckpt/ALMT_MOSI_Dual_C4_Intensity/best_validation_predictions.npz \
+  --title "MOSI validation - Dual-C4 + Intensity" \
+  --output-dir ckpt/ALMT_MOSI_Dual_C4_Intensity/acc7_validation
+
+python scripts/analyze_acc7.py \
   --predictions ckpt/ALMT_MOSI_Dual_C4_Intensity/best_test_predictions.npz \
-  --title "MOSI Dual-C4 + Intensity Objective"
+  --title "MOSI test - Dual-C4 + Intensity" \
+  --output-dir ckpt/ALMT_MOSI_Dual_C4_Intensity/acc7_test
 ```
 
 还可以分别分析纯回归头与有序头，判断极端等级的改善来自哪里：
@@ -169,6 +175,8 @@ base:
 
 ```text
 best_validation_model.pth
+best_validation_predictions.npz
+best_validation_predictions.csv
 best_validation_selection.json
 best_test_predictions.npz
 best_test_predictions.csv
