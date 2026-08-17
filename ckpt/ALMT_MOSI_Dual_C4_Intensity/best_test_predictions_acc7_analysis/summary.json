@@ -1,0 +1,61 @@
+{
+  "prediction_file": "ckpt/ALMT_MOSI_Dual_C4_Intensity/best_test_predictions.npz",
+  "sample_count": 686,
+  "acc7": 0.4737609329446064,
+  "macro_recall": 0.3953971156803511,
+  "macro_f1": 0.3978683616702458,
+  "mae": 0.7091088648070921,
+  "correlation": 0.7925304356258394,
+  "rounding": "np.round(np.clip(value, -3, 3))",
+  "per_class": {
+    "-3": {
+      "recall": 0.08695652173913043,
+      "precision": 0.6666666666666666,
+      "f1": 0.15384615384615383,
+      "support": 46,
+      "predicted": 6
+    },
+    "-2": {
+      "recall": 0.5128205128205128,
+      "precision": 0.5633802816901409,
+      "f1": 0.5369127516778522,
+      "support": 156,
+      "predicted": 142
+    },
+    "-1": {
+      "recall": 0.5172413793103449,
+      "precision": 0.41208791208791207,
+      "f1": 0.45871559633027525,
+      "support": 145,
+      "predicted": 182
+    },
+    "0": {
+      "recall": 0.5094339622641509,
+      "precision": 0.432,
+      "f1": 0.4675324675324675,
+      "support": 106,
+      "predicted": 125
+    },
+    "1": {
+      "recall": 0.45132743362831856,
+      "precision": 0.4358974358974359,
+      "f1": 0.44347826086956516,
+      "support": 113,
+      "predicted": 117
+    },
+    "2": {
+      "recall": 0.59,
+      "precision": 0.5412844036697247,
+      "f1": 0.5645933014354066,
+      "support": 100,
+      "predicted": 109
+    },
+    "3": {
+      "recall": 0.1,
+      "precision": 0.4,
+      "f1": 0.16000000000000003,
+      "support": 20,
+      "predicted": 5
+    }
+  }
+}

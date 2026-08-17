@@ -44,7 +44,7 @@ model:
 
   # Fine-grained Intensity Parameters
   use_intensity_objective: true
-  ordinal_prediction_weight: 0.2
+  ordinal_prediction_weight: 0.3
   contrastive_projection_dim: 64
   contrastive_projection_dropout: 0.1
 
@@ -66,7 +66,7 @@ model:
 
 objective:
   regression_weight: 1.0
-  ordinal_weight: 0.2
+  ordinal_weight: 0.4
   contrastive_weight: 0.0
   contrastive_temperature: 0.1
   contrastive_label_temperature: 0.5
