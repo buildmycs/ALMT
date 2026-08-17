@@ -150,3 +150,33 @@ objective:
 第一轮不要立即提高辅助损失权重。先观察 `-3/+3 recall`、整体 Acc-7、MAE 和 Corr；
 如果极端 recall 上升但 MAE 明显变差，优先把 `ordinal_prediction_weight` 从 0.2
 降到 0.1，而不是继续增加类别平衡权重。
+
+## 7. 最佳 epoch 的选择标准
+
+强度配置默认使用 validation Acc-7 选择 checkpoint，并在 Acc-7 并列时选择
+validation MAE 更小的 epoch：
+
+```yaml
+base:
+  selection_metric: Mult_acc_7
+  selection_mode: max
+  selection_secondary_metric: MAE
+  selection_secondary_mode: min
+```
+
+训练阶段不会逐 epoch 评估或比较 test 指标。全部 epoch 结束后，程序重新加载完全
+由 validation 指标选中的 `best_validation_model.pth`，只运行一次 test，并保存：
+
+```text
+best_validation_model.pth
+best_validation_selection.json
+best_test_predictions.npz
+best_test_predictions.csv
+```
+
+论文中应报告 `best_validation_selection.json` 里的 `test_results`，并说明 checkpoint
+selection criterion 是 validation Acc-7。不要从多个 epoch 的 test Acc-7 中挑最大值。
+
+仓库内的 Dual-C4 与 Dual-C4-Intensity 配置均使用相同的 Acc-7 选择标准，以保证
+消融公平。其他没有填写 `selection_metric` 的旧配置或自定义配置保持向后兼容，默认
+按照 validation MAE 最小选择 checkpoint。

@@ -4,6 +4,7 @@ Training entry point for the dual-text ALMT variant.
 
 import argparse
 import csv
+import json
 import os
 
 import numpy as np
@@ -14,8 +15,9 @@ from tensorboardX import SummaryWriter
 from core.dataset_dual import DualTextMMDataLoader
 from core.intensity_objective import build_sentiment_objective
 from core.metric import MetricsTop
+from core.model_selection import ValidationMetricSelector
 from core.scheduler import get_scheduler
-from core.utils import AverageMeter, dict_to_namespace, results_recorder, setup_seed
+from core.utils import AverageMeter, dict_to_namespace, setup_seed
 from models.almt_dual import build_model
 
 
@@ -56,13 +58,22 @@ def _average_fusion_stats(meters):
     return {name: meter.value_avg for name, meter in meters.items()}
 
 
-def _save_best_artifacts(
+def _json_ready(value):
+    if isinstance(value, dict):
+        return {key: _json_ready(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_ready(item) for item in value]
+    if isinstance(value, np.generic):
+        return value.item()
+    return value
+
+
+def _save_best_checkpoint(
     model,
     optimizer,
     epoch,
     validation_ret,
-    test_ret,
-    test_dataset,
+    selection_info,
     save_path,
 ):
     checkpoint_path = os.path.join(save_path, "best_validation_model.pth")
@@ -72,10 +83,21 @@ def _save_best_artifacts(
             "state_dict": model.state_dict(),
             "optimizer": optimizer.state_dict(),
             "validation_results": validation_ret["results"],
-            "test_results": test_ret["results"],
+            "selection": selection_info,
         },
         checkpoint_path,
     )
+    print(f"Saved validation-selected checkpoint: {checkpoint_path}")
+    return checkpoint_path
+
+
+def _save_selected_test_artifacts(
+    test_ret,
+    test_dataset,
+    selection_info,
+    save_path,
+):
+    epoch = selection_info["selected_epoch"]
 
     predictions = test_ret["predictions"].view(-1).numpy()
     labels = test_ret["labels"].view(-1).numpy()
@@ -133,9 +155,20 @@ def _save_best_artifacts(
                 ]
             )
 
-    print(f"Saved best checkpoint: {checkpoint_path}")
+    selection_report = dict(selection_info)
+    selection_report["test_results"] = test_ret["results"]
+    report_path = os.path.join(save_path, "best_validation_selection.json")
+    with open(report_path, "w", encoding="utf-8") as file:
+        json.dump(
+            _json_ready(selection_report),
+            file,
+            ensure_ascii=False,
+            indent=2,
+        )
+
     print(f"Saved test predictions: {prediction_path}")
     print(f"Saved readable predictions: {csv_path}")
+    print(f"Saved selection report: {report_path}")
 
 
 def run_epoch(model, data_loader, loss_fn, metrics_fn, optimizer=None):
@@ -241,11 +274,36 @@ def main():
     print("-------------------------------------------")
     metrics_fn = MetricsTop().getMetics(args.dataset.datasetName)
 
-    training_recorder = results_recorder()
-    validation_recorder = results_recorder()
-    test_recorder = results_recorder()
     writer = SummaryWriter(logdir=log_path)
-    best_validation_mae = float("inf")
+
+    selection_metric = getattr(args.base, "selection_metric", "MAE")
+    default_mode = "min" if selection_metric == "MAE" else "max"
+    selector = ValidationMetricSelector(
+        primary_metric=selection_metric,
+        primary_mode=getattr(args.base, "selection_mode", default_mode),
+        secondary_metric=getattr(
+            args.base, "selection_secondary_metric", None
+        ),
+        secondary_mode=getattr(
+            args.base, "selection_secondary_mode", "min"
+        ),
+    )
+    print("-----------------selection-----------------")
+    print(
+        f"Primary: validation {selector.primary_metric} "
+        f"({selector.primary_mode})"
+    )
+    if selector.secondary_metric is not None:
+        print(
+            f"Tie-breaker: validation {selector.secondary_metric} "
+            f"({selector.secondary_mode})"
+        )
+    print("Test is evaluated once after training using the selected checkpoint.")
+    print("-------------------------------------------")
+
+    if args.base.n_epochs < 1:
+        raise ValueError("n_epochs must be at least 1")
+    checkpoint_path = os.path.join(save_path, "best_validation_model.pth")
 
     for epoch in range(1, args.base.n_epochs + 1):
         loss_fn.set_epoch(epoch)
@@ -255,28 +313,14 @@ def main():
         validation_ret = run_epoch(
             model, data_loader["valid"], loss_fn, metrics_fn
         )
-        test_ret = run_epoch(
-            model, data_loader["test"], loss_fn, metrics_fn
-        )
 
-        training_recorder.update(training_ret["results"], epoch)
-        validation_recorder.update(validation_ret["results"], epoch)
-        test_recorder.update(test_ret["results"], epoch)
-        best_validation = validation_recorder.get_best_results()
-        best_test = test_recorder.get_best_results()
-
-        validation_mae = torch.mean(
-            torch.abs(validation_ret["predictions"] - validation_ret["labels"])
-        ).item()
-        if validation_mae < best_validation_mae:
-            best_validation_mae = validation_mae
-            _save_best_artifacts(
+        if selector.consider(epoch, validation_ret):
+            _save_best_checkpoint(
                 model=model,
                 optimizer=optimizer,
                 epoch=epoch,
                 validation_ret=validation_ret,
-                test_ret=test_ret,
-                test_dataset=data_loader["test"].dataset,
+                selection_info=selector.as_dict(),
                 save_path=save_path,
             )
 
@@ -284,26 +328,20 @@ def main():
         print(f'Learning Rate: {optimizer.param_groups[0]["lr"]}')
         print(f'Training Results: {training_ret["results"]}')
         print(f'Validation Results: {validation_ret["results"]}')
-        print(f'Test Results: {test_ret["results"]}')
         print(f'Training Objective: {training_ret["loss_components"]}')
         if training_ret["fusion_stats"]:
             print(f'Dual-text Fusion: {training_ret["fusion_stats"]}')
+        selected = selector.as_dict()
         print(
-            "Best Validation Results across All Epochs: "
-            f'{best_validation["best_results_all_epochs"]}'
+            f"Selected Epoch: {selected['selected_epoch']} | "
+            f"validation {selected['primary_metric']}="
+            f"{selected['primary_value']:.6f}"
         )
-        print(
-            "Best Validation Results of One Epoch: "
-            f'{best_validation["best_results_one_epoch"]}'
-        )
-        print(
-            "Best Test Results across All Epochs: "
-            f'{best_test["best_results_all_epochs"]}'
-        )
-        print(
-            "Best Test Results of One Epoch: "
-            f'{best_test["best_results_one_epoch"]}'
-        )
+        if selected["secondary_metric"] is not None:
+            print(
+                f"Tie-breaker validation {selected['secondary_metric']}="
+                f"{selected['secondary_value']:.6f}"
+            )
         print("----------------------------------------------------------\n")
 
         writer.add_scalar(
@@ -311,9 +349,6 @@ def main():
         )
         writer.add_scalar(
             "valid/loss", validation_ret["loss_recorder"].value_avg, epoch
-        )
-        writer.add_scalar(
-            "test/loss", test_ret["loss_recorder"].value_avg, epoch
         )
         for name, value in training_ret["fusion_stats"].items():
             writer.add_scalar(f"dual_text/{name}", value, epoch)
@@ -326,6 +361,37 @@ def main():
                 writer.add_scalar(f"ordinal/threshold_{index}", value, epoch)
 
         scheduler_warmup.step()
+
+    checkpoint = torch.load(
+        checkpoint_path,
+        map_location=device,
+        weights_only=False,
+    )
+    model.load_state_dict(checkpoint["state_dict"])
+    selected_epoch = selector.selected_epoch
+    loss_fn.set_epoch(selected_epoch)
+    test_ret = run_epoch(model, data_loader["test"], loss_fn, metrics_fn)
+    selection_info = selector.as_dict()
+    _save_selected_test_artifacts(
+        test_ret=test_ret,
+        test_dataset=data_loader["test"].dataset,
+        selection_info=selection_info,
+        save_path=save_path,
+    )
+    writer.add_scalar(
+        "test_selected/loss", test_ret["loss_recorder"].value_avg, selected_epoch
+    )
+    for name, value in test_ret["results"].items():
+        writer.add_scalar(f"test_selected/{name}", value, selected_epoch)
+
+    print("\n----------------- Final Selected Test -----------------")
+    print(
+        f"Checkpoint selected by validation {selector.primary_metric} "
+        f"at epoch {selected_epoch}"
+    )
+    print(f"Validation Results: {selector.selected_validation_results}")
+    print(f'Test Results: {test_ret["results"]}')
+    print("-------------------------------------------------------\n")
 
     writer.close()
 

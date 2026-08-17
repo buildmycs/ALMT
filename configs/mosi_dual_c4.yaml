@@ -9,6 +9,10 @@ base:
   n_epochs: 200
   num_workers: 8
   gpu_id: 0
+  selection_metric: Mult_acc_7
+  selection_mode: max
+  selection_secondary_metric: MAE
+  selection_secondary_mode: min
 
 dataset:
   datasetName: mosi
