@@ -159,8 +159,20 @@ objective:
 
 ## 7. 最佳 epoch 的选择标准
 
-强度配置默认使用 validation Acc-7 选择 checkpoint，并在 Acc-7 并列时选择
-validation MAE 更小的 epoch：
+`train_dual.py` 支持两种评测口径。当前 MOSI intensity 配置为了与原始 GitHub
+ALMT 的 `train.py` 同口径比较，使用：
+
+```yaml
+base:
+  evaluation_protocol: legacy_test_oracle
+```
+
+该模式逐 epoch 评测 test，并复用原始 `results_recorder` 输出各指标跨 epoch 最优值和
+test MAE 最低轮的完整指标，详见 `LEGACY_TEST_ORACLE.md`。程序还会保存 test Acc-7
+最高轮的模型和逐样本预测。
+
+同时，训练过程仍会按照 validation Acc-7 保存一个独立 checkpoint，并在 Acc-7 并列
+时选择 validation MAE 更小的 epoch：
 
 ```yaml
 base:
@@ -170,8 +182,15 @@ base:
   selection_secondary_mode: min
 ```
 
-训练阶段不会逐 epoch 评估或比较 test 指标。全部 epoch 结束后，程序重新加载完全
-由 validation 指标选中的 `best_validation_model.pth`，只运行一次 test，并保存：
+如果需要更严格的 validation-only 口径，将配置改为：
+
+```yaml
+base:
+  evaluation_protocol: validation_selected
+```
+
+该模式不会逐 epoch 评估或比较 test。全部 epoch 结束后，程序重新加载完全由
+validation 指标选中的 `best_validation_model.pth`，只运行一次 test，并保存：
 
 ```text
 best_validation_model.pth
@@ -182,9 +201,6 @@ best_test_predictions.npz
 best_test_predictions.csv
 ```
 
-论文中应报告 `best_validation_selection.json` 里的 `test_results`，并说明 checkpoint
-selection criterion 是 validation Acc-7。不要从多个 epoch 的 test Acc-7 中挑最大值。
-
-仓库内的 Dual-C4 与 Dual-C4-Intensity 配置均使用相同的 Acc-7 选择标准，以保证
-消融公平。其他没有填写 `selection_metric` 的旧配置或自定义配置保持向后兼容，默认
-按照 validation MAE 最小选择 checkpoint。
+做对比时，基线和改进模型必须使用同一种评测口径。`legacy_test_oracle` 用于复刻原始
+ALMT 报告方式；`validation_selected` 用于提供不逐轮查看 test 的补充结果。没有填写
+`evaluation_protocol` 的配置默认采用 `validation_selected`。

@@ -17,7 +17,12 @@ from core.intensity_objective import build_sentiment_objective
 from core.metric import MetricsTop
 from core.model_selection import ValidationMetricSelector
 from core.scheduler import get_scheduler
-from core.utils import AverageMeter, dict_to_namespace, setup_seed
+from core.utils import (
+    AverageMeter,
+    dict_to_namespace,
+    results_recorder,
+    setup_seed,
+)
 from models.almt_dual import build_model
 
 
@@ -192,6 +197,75 @@ def _save_selected_test_artifacts(
     print(f"Saved selection report: {report_path}")
 
 
+def _save_legacy_test_acc7_checkpoint(
+    model,
+    optimizer,
+    epoch,
+    test_ret,
+    test_dataset,
+    save_path,
+):
+    checkpoint_path = os.path.join(
+        save_path, "best_test_acc7_oracle_model.pth"
+    )
+    torch.save(
+        {
+            "epoch": epoch,
+            "state_dict": model.state_dict(),
+            "optimizer": optimizer.state_dict(),
+            "test_results": test_ret["results"],
+            "evaluation_protocol": "legacy_test_oracle",
+        },
+        checkpoint_path,
+    )
+    _save_prediction_artifacts(
+        epoch_ret=test_ret,
+        dataset=test_dataset,
+        epoch=epoch,
+        save_path=save_path,
+        split_name="test_acc7_oracle",
+    )
+    print(f"Saved legacy test-Acc-7 checkpoint: {checkpoint_path}")
+    return checkpoint_path
+
+
+def _save_legacy_test_summary(
+    test_results_recorder,
+    validation_results_recorder,
+    best_test_acc7_epoch,
+    best_test_acc7_results,
+    validation_selection,
+    save_path,
+):
+    report = {
+        "evaluation_protocol": "legacy_test_oracle",
+        "warning": (
+            "Test was evaluated every epoch. This reproduces the original "
+            "ALMT reporting logic and is not an unbiased held-out estimate."
+        ),
+        "best_test_acc7_epoch": best_test_acc7_epoch,
+        "best_test_acc7_epoch_results": best_test_acc7_results,
+        "best_test_results_one_epoch_by_test_mae": (
+            test_results_recorder.best_results_one_epoch
+        ),
+        "best_test_results_across_all_epochs": (
+            test_results_recorder.best_results_all_epochs
+        ),
+        "best_validation_results_one_epoch_by_validation_mae": (
+            validation_results_recorder.best_results_one_epoch
+        ),
+        "best_validation_results_across_all_epochs": (
+            validation_results_recorder.best_results_all_epochs
+        ),
+        "validation_selected_checkpoint": validation_selection,
+    }
+    report_path = os.path.join(save_path, "legacy_test_oracle_summary.json")
+    with open(report_path, "w", encoding="utf-8") as file:
+        json.dump(_json_ready(report), file, ensure_ascii=False, indent=2)
+    print(f"Saved legacy test-oracle report: {report_path}")
+    return report_path
+
+
 def run_epoch(model, data_loader, loss_fn, metrics_fn, optimizer=None):
     training = optimizer is not None
     model.train(training)
@@ -297,6 +371,25 @@ def main():
 
     writer = SummaryWriter(logdir=log_path)
 
+    evaluation_protocol = getattr(
+        args.base, "evaluation_protocol", "validation_selected"
+    ).lower()
+    supported_protocols = {"validation_selected", "legacy_test_oracle"}
+    if evaluation_protocol not in supported_protocols:
+        raise ValueError(
+            "evaluation_protocol must be one of "
+            f"{sorted(supported_protocols)}, got '{evaluation_protocol}'"
+        )
+    legacy_test_oracle = evaluation_protocol == "legacy_test_oracle"
+    training_results_recorder = results_recorder() if legacy_test_oracle else None
+    validation_results_recorder = (
+        results_recorder() if legacy_test_oracle else None
+    )
+    test_results_recorder = results_recorder() if legacy_test_oracle else None
+    best_test_acc7 = None
+    best_test_acc7_epoch = None
+    best_test_acc7_results = None
+
     selection_metric = getattr(args.base, "selection_metric", "MAE")
     default_mode = "min" if selection_metric == "MAE" else "max"
     selector = ValidationMetricSelector(
@@ -319,7 +412,16 @@ def main():
             f"Tie-breaker: validation {selector.secondary_metric} "
             f"({selector.secondary_mode})"
         )
-    print("Test is evaluated once after training using the selected checkpoint.")
+    if legacy_test_oracle:
+        print(
+            "Protocol: legacy_test_oracle. Test is evaluated every epoch to "
+            "reproduce the original ALMT reporting logic."
+        )
+    else:
+        print(
+            "Protocol: validation_selected. Test is evaluated once after "
+            "training using the selected checkpoint."
+        )
     print("-------------------------------------------")
 
     if args.base.n_epochs < 1:
@@ -333,6 +435,11 @@ def main():
         )
         validation_ret = run_epoch(
             model, data_loader["valid"], loss_fn, metrics_fn
+        )
+        test_ret = (
+            run_epoch(model, data_loader["test"], loss_fn, metrics_fn)
+            if legacy_test_oracle
+            else None
         )
 
         if selector.consider(epoch, validation_ret):
@@ -353,10 +460,57 @@ def main():
                 split_name="validation",
             )
 
+        if legacy_test_oracle:
+            training_results_recorder.update(training_ret["results"], epoch)
+            validation_results_recorder.update(
+                validation_ret["results"], epoch
+            )
+            test_results_recorder.update(test_ret["results"], epoch)
+            current_test_acc7 = test_ret["results"]["Mult_acc_7"]
+            if best_test_acc7 is None or current_test_acc7 > best_test_acc7:
+                best_test_acc7 = current_test_acc7
+                best_test_acc7_epoch = epoch
+                best_test_acc7_results = dict(test_ret["results"])
+                _save_legacy_test_acc7_checkpoint(
+                    model=model,
+                    optimizer=optimizer,
+                    epoch=epoch,
+                    test_ret=test_ret,
+                    test_dataset=data_loader["test"].dataset,
+                    save_path=save_path,
+                )
+
         print(f"\n----------------- Results Epoch {epoch} -----------------")
         print(f'Learning Rate: {optimizer.param_groups[0]["lr"]}')
         print(f'Training Results: {training_ret["results"]}')
         print(f'Validation Results: {validation_ret["results"]}')
+        if legacy_test_oracle:
+            best_validation_results = (
+                validation_results_recorder.get_best_results()
+            )
+            best_test_results = test_results_recorder.get_best_results()
+            print(f'Test Results: {test_ret["results"]}')
+            print(
+                "Best Validation Results across All Epochs: "
+                f"{best_validation_results['best_results_all_epochs']}"
+            )
+            print(
+                "Best Validation Results of One Epoch: "
+                f"{best_validation_results['best_results_one_epoch']}"
+            )
+            print(
+                "Best Test Results across All Epochs: "
+                f"{best_test_results['best_results_all_epochs']}"
+            )
+            print(
+                "Best Test Results of One Epoch: "
+                f"{best_test_results['best_results_one_epoch']}"
+            )
+            print(
+                f"Best Test Acc-7 Epoch: {best_test_acc7_epoch} | "
+                f"Acc-7={best_test_acc7:.4f} | "
+                f"Results={best_test_acc7_results}"
+            )
         print(f'Training Objective: {training_ret["loss_components"]}')
         if training_ret["fusion_stats"]:
             print(f'Dual-text Fusion: {training_ret["fusion_stats"]}')
@@ -379,6 +533,12 @@ def main():
         writer.add_scalar(
             "valid/loss", validation_ret["loss_recorder"].value_avg, epoch
         )
+        if legacy_test_oracle:
+            writer.add_scalar(
+                "test/loss", test_ret["loss_recorder"].value_avg, epoch
+            )
+            for name, value in test_ret["results"].items():
+                writer.add_scalar(f"test/{name}", value, epoch)
         for name, value in training_ret["fusion_stats"].items():
             writer.add_scalar(f"dual_text/{name}", value, epoch)
         for name, value in training_ret["loss_components"].items():
@@ -390,6 +550,34 @@ def main():
                 writer.add_scalar(f"ordinal/threshold_{index}", value, epoch)
 
         scheduler_warmup.step()
+
+    if legacy_test_oracle:
+        _save_legacy_test_summary(
+            test_results_recorder=test_results_recorder,
+            validation_results_recorder=validation_results_recorder,
+            best_test_acc7_epoch=best_test_acc7_epoch,
+            best_test_acc7_results=best_test_acc7_results,
+            validation_selection=selector.as_dict(),
+            save_path=save_path,
+        )
+        print("\n---------------- Legacy ALMT Test Oracle ----------------")
+        print(
+            "This block reproduces the original train.py test-every-epoch "
+            "reporting protocol."
+        )
+        print(f"Best Test Acc-7 Epoch: {best_test_acc7_epoch}")
+        print(f"Best Test Acc-7 Epoch Results: {best_test_acc7_results}")
+        print(
+            "Best Test Results across All Epochs: "
+            f"{test_results_recorder.best_results_all_epochs}"
+        )
+        print(
+            "Best Test Results of One Epoch (minimum test MAE): "
+            f"{test_results_recorder.best_results_one_epoch}"
+        )
+        print("---------------------------------------------------------\n")
+        writer.close()
+        return
 
     checkpoint = torch.load(
         checkpoint_path,

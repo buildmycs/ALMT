@@ -8,7 +8,9 @@ base:
   n_epochs: 200
   num_workers: 8
   gpu_id: 0
-  # Select the checkpoint on validation only; never maximize test Acc-7.
+  # Reproduce the original ALMT train.py test-every-epoch reporting protocol.
+  evaluation_protocol: legacy_test_oracle
+  # A validation-selected checkpoint is still saved for controlled analysis.
   selection_metric: Mult_acc_7
   selection_mode: max
   selection_secondary_metric: MAE

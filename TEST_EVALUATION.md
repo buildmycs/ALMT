@@ -1,10 +1,10 @@
-# Validation 选模后的 Test 评测流程
+# Validation 选模后的独立 Test 评测流程（补充口径）
 
 ## 1. 正确的“最佳 Test 结果”定义
 
-本项目使用 validation Acc-7 选择唯一 checkpoint。对于当前实验，选择依据是
-validation Acc-7 为 51.1% 的 epoch。参数和模型固定后，只在 test split 上运行一次，
-得到的全部指标构成这套配置的最终 test 结果。
+本文件说明 `validation_selected` 补充口径：使用 validation Acc-7 选择唯一 checkpoint，
+参数和模型固定后只在 test split 上运行一次。当前 MOSI intensity YAML 已为了复现原始
+ALMT 改为 `legacy_test_oracle`；两种模式的用途和输出不能混淆。
 
 不能逐 epoch 评估 test 后挑选最高 Acc-7，也不能在多组超参数的 test 结果中挑最大值。
 这两种做法都使用了 test 信息进行模型选择，会造成 test leakage，使论文结果偏高且无法
