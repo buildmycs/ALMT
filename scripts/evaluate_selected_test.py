@@ -84,10 +84,15 @@ def evaluate(model, data_loader, metrics_fn, device):
             labels.append(label.cpu())
 
             if isinstance(model_output, dict):
-                for key in component_predictions:
-                    component_predictions[key].append(
-                        model_output[key].detach().cpu()
-                    )
+                output_key_mapping = {
+                    "regression_predictions": "regression_prediction",
+                    "ordinal_predictions": "ordinal_prediction",
+                }
+                for result_key, model_key in output_key_mapping.items():
+                    if model_key in model_output:
+                        component_predictions[result_key].append(
+                            model_output[model_key].detach().cpu()
+                        )
 
     prediction = torch.cat(predictions)
     label = torch.cat(labels)
