@@ -354,7 +354,7 @@ def main():
     os.makedirs(save_path, exist_ok=True)
 
     model = build_model(args).to(device)
-    data_loader = DualTextMMDataLoader(args)
+    data_loader = DualTextMMDataLoader(args, seed=seed)
     optimizer = torch.optim.AdamW(
         model.parameters(),
         lr=args.base.lr,

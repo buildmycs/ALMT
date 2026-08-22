@@ -85,3 +85,21 @@ base:
 
 该模式使用 validation 指标选择 checkpoint，训练结束后只评测一次 test。两套模式
 共存，便于同时提供原始 ALMT 同口径结果和更严格的 validation-selected 补充结果。
+
+## 5. DataLoader 随机数隔离
+
+Dual-text DataLoader 为三个 split 使用独立的 `torch.Generator`：
+
+```text
+train = seed
+valid = seed + 10000
+test  = seed + 20000
+```
+
+因此 `legacy_test_oracle` 每个 epoch 新增的 test 迭代只推进 test 自己的随机状态，不会
+改变下一轮 train shuffle，也不会影响 validation DataLoader。命令行传入的
+`--seed` 会优先于 YAML 的 `base.seed`，并同步用于三个 DataLoader 随机流。
+
+这项修改保证修改后的多次运行和两种评测模式之间具备可控的 shuffle 隔离，但新的独立
+随机流与修改前依赖全局 RNG 的历史运行轨迹不同。因此旧结果与新结果应作为不同运行，
+后续对比应统一使用修改后的代码重新执行。
