@@ -86,20 +86,27 @@ base:
 该模式使用 validation 指标选择 checkpoint，训练结束后只评测一次 test。两套模式
 共存，便于同时提供原始 ALMT 同口径结果和更严格的 validation-selected 补充结果。
 
-## 5. DataLoader 随机数隔离
+## 5. DataLoader 旧版 RNG 兼容模式
 
-Dual-text DataLoader 为三个 split 使用独立的 `torch.Generator`：
+为了保持原始 ALMT 的 train shuffle 随机轨迹，train 和 validation 继续使用旧版全局
+PyTorch RNG；只有新增的逐 epoch test 评测使用独立 `torch.Generator`：
 
 ```text
-train = seed
-valid = seed + 10000
-test  = seed + 20000
+train = global PyTorch RNG
+valid = global PyTorch RNG
+test  = independent generator(seed + 20000)
 ```
 
-因此 `legacy_test_oracle` 每个 epoch 新增的 test 迭代只推进 test 自己的随机状态，不会
-改变下一轮 train shuffle，也不会影响 validation DataLoader。命令行传入的
-`--seed` 会优先于 YAML 的 `base.seed`，并同步用于三个 DataLoader 随机流。
+这保留了旧版“train shuffle 后由 validation 推进全局 RNG，再进入下一轮 train”的顺序，
+同时使 `legacy_test_oracle` 新增的 test DataLoader 只推进自己的随机状态，不会额外改变
+下一轮 train shuffle。命令行传入的 `--seed` 会优先于 YAML 的 `base.seed`，并用于
+test 独立随机流。
 
-这项修改保证修改后的多次运行和两种评测模式之间具备可控的 shuffle 隔离，但新的独立
-随机流与修改前依赖全局 RNG 的历史运行轨迹不同。因此旧结果与新结果应作为不同运行，
-后续对比应统一使用修改后的代码重新执行。
+启动时会输出实际模式，例如：
+
+```text
+DataLoader RNG mode: train=global, valid=global, test=independent(seed=20007)
+```
+
+要复现历史训练仍需保持相同 seed、代码、数据、依赖版本和硬件环境。该兼容模式解决的是
+新增 test DataLoader 对 CPU 全局 RNG 的额外消耗，不保证消除所有 CUDA 非确定性。

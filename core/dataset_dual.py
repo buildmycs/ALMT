@@ -113,31 +113,20 @@ class DualTextMMDataset(Dataset):
         return sample
 
 
-def _build_split_generators(seed):
-    """Create isolated RNG streams so evaluation cannot perturb train order."""
-    base_seed = int(seed)
-    split_seeds = {
-        "train": base_seed,
-        "valid": base_seed + 10_000,
-        "test": base_seed + 20_000,
-    }
-    generators = {}
-    for split, split_seed in split_seeds.items():
-        generator = torch.Generator()
-        generator.manual_seed(split_seed)
-        generators[split] = generator
-    return generators, split_seeds
+def _build_test_generator(seed):
+    """Isolate test RNG while preserving legacy train/valid RNG behavior."""
+    test_seed = int(seed) + 20_000
+    generator = torch.Generator()
+    generator.manual_seed(test_seed)
+    return generator, test_seed
 
 
 def DualTextMMDataLoader(args, seed=None):
     loader_seed = args.base.seed if seed is None else seed
-    generators, split_seeds = _build_split_generators(loader_seed)
+    test_generator, test_seed = _build_test_generator(loader_seed)
     print(
-        "DataLoader generator seeds: "
-        + ", ".join(
-            f"{split}={split_seeds[split]}"
-            for split in ("train", "valid", "test")
-        )
+        "DataLoader RNG mode: train=global, valid=global, "
+        f"test=independent(seed={test_seed})"
     )
     datasets = {
         split: DualTextMMDataset(args, mode=split)
@@ -149,7 +138,7 @@ def DualTextMMDataLoader(args, seed=None):
             batch_size=args.base.batch_size,
             num_workers=args.base.num_workers,
             shuffle=(split == "train"),
-            generator=generators[split],
+            generator=(test_generator if split == "test" else None),
         )
         for split, dataset in datasets.items()
     }
