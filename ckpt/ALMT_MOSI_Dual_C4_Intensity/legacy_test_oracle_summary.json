@@ -1,0 +1,74 @@
+{
+  "evaluation_protocol": "legacy_test_oracle",
+  "warning": "Test was evaluated every epoch. This reproduces the original ALMT reporting logic and is not an unbiased held-out estimate.",
+  "best_test_acc7_epoch": 36,
+  "best_test_acc7_epoch_results": {
+    "Has0_acc_2": 0.8149,
+    "Has0_F1_score": 0.8137,
+    "Non0_acc_2": 0.8338,
+    "Non0_F1_score": 0.8333,
+    "Mult_acc_5": 0.5364,
+    "Mult_acc_7": 0.4767,
+    "MAE": 0.7193999886512756,
+    "Corr": 0.7879
+  },
+  "best_test_results_one_epoch_by_test_mae": {
+    "Has0_acc_2": 0.8265,
+    "Has0_F1_score": 0.826,
+    "Non0_acc_2": 0.843,
+    "Non0_F1_score": 0.8429,
+    "Mult_acc_5": 0.5219,
+    "Mult_acc_7": 0.4665,
+    "MAE": 0.7125999927520752,
+    "Corr": 0.7906
+  },
+  "best_test_results_across_all_epochs": {
+    "Has0_acc_2": 0.8338,
+    "Has0_F1_score": 0.8333,
+    "Non0_acc_2": 0.8521,
+    "Non0_F1_score": 0.8517,
+    "Mult_acc_5": 0.5364,
+    "Mult_acc_7": 0.4767,
+    "MAE": 0.7125999927520752,
+    "Corr": 0.7982
+  },
+  "best_validation_results_one_epoch_by_validation_mae": {
+    "Has0_acc_2": 0.8384,
+    "Has0_F1_score": 0.8393,
+    "Non0_acc_2": 0.8657,
+    "Non0_F1_score": 0.8656,
+    "Mult_acc_5": 0.5633,
+    "Mult_acc_7": 0.4541,
+    "MAE": 0.6764000058174133,
+    "Corr": 0.8199
+  },
+  "best_validation_results_across_all_epochs": {
+    "Has0_acc_2": 0.8472,
+    "Has0_F1_score": 0.8478,
+    "Non0_acc_2": 0.875,
+    "Non0_F1_score": 0.8751,
+    "Mult_acc_5": 0.5852,
+    "Mult_acc_7": 0.4891,
+    "MAE": 0.6764000058174133,
+    "Corr": 0.8213
+  },
+  "validation_selected_checkpoint": {
+    "selected_epoch": 34,
+    "primary_metric": "Mult_acc_7",
+    "primary_mode": "max",
+    "primary_value": 0.4890829622745514,
+    "secondary_metric": "MAE",
+    "secondary_mode": "min",
+    "secondary_value": 0.6854056119918823,
+    "validation_results": {
+      "Has0_acc_2": 0.8384,
+      "Has0_F1_score": 0.8391,
+      "Non0_acc_2": 0.8611,
+      "Non0_F1_score": 0.8609,
+      "Mult_acc_5": 0.5852,
+      "Mult_acc_7": 0.4891,
+      "MAE": 0.6854000091552734,
+      "Corr": 0.8126
+    }
+  }
+}

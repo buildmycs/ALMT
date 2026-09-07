@@ -1,6 +1,6 @@
 import numpy as np
 
-path = "ckpt/ALMT_MOSI_Dual_C4_Intensity/best_validation_predictions.npz"
+path = "ckpt/ALMT_MOSI_Dual_C4_Intensity_conta/best_validation_predictions.npz"
 data = np.load(path)
 
 reg = data["regression_predictions"].reshape(-1)
