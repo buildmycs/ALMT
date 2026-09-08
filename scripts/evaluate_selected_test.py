@@ -43,6 +43,15 @@ def parse_args():
         help="Artifact directory. Defaults to the checkpoint directory.",
     )
     parser.add_argument("--gpu_id", type=int, default=None)
+    parser.add_argument(
+        "--ordinal-prediction-weight",
+        type=float,
+        default=None,
+        help=(
+            "Inference-only rho selected on validation. This overrides the "
+            "YAML value without retraining or editing the config file."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -107,7 +116,15 @@ def evaluate(model, data_loader, metrics_fn, device):
     return result
 
 
-def save_artifacts(result, dataset, checkpoint, config_file, output_dir):
+def save_artifacts(
+    result,
+    dataset,
+    checkpoint,
+    config_file,
+    output_dir,
+    configured_rho=None,
+    inference_rho=None,
+):
     output_dir.mkdir(parents=True, exist_ok=True)
     epoch = int(checkpoint.get("epoch", -1))
     predictions = result["predictions"].view(-1).numpy()
@@ -172,6 +189,8 @@ def save_artifacts(result, dataset, checkpoint, config_file, output_dir):
         "config_file": str(config_file),
         "selected_epoch": epoch,
         "validation_selection": checkpoint.get("selection"),
+        "configured_ordinal_prediction_weight": configured_rho,
+        "inference_ordinal_prediction_weight": inference_rho,
         "test_sample_count": len(labels),
         "test_results": result["results"],
     }
@@ -192,6 +211,18 @@ def main():
     config_file = Path(cli_args.config_file)
     with open(config_file, encoding="utf-8") as file:
         args = dict_to_namespace(yaml.load(file, Loader=yaml.FullLoader))
+
+    configured_rho = float(
+        getattr(args.model, "ordinal_prediction_weight", 0.0)
+    )
+    inference_rho = (
+        configured_rho
+        if cli_args.ordinal_prediction_weight is None
+        else float(cli_args.ordinal_prediction_weight)
+    )
+    if not 0.0 <= inference_rho <= 1.0:
+        raise ValueError("--ordinal-prediction-weight must be in [0, 1]")
+    args.model.ordinal_prediction_weight = inference_rho
 
     gpu_id = args.base.gpu_id if cli_args.gpu_id is None else cli_args.gpu_id
     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
@@ -217,6 +248,10 @@ def main():
 
     print(f"Device: {device} ({gpu_id})")
     print(f"Checkpoint: {checkpoint_path}")
+    print(
+        "Ordinal prediction weight: "
+        f"configured={configured_rho:.6f}, inference={inference_rho:.6f}"
+    )
     checkpoint = torch.load(
         checkpoint_path,
         map_location=device,
@@ -254,6 +289,8 @@ def main():
         checkpoint=checkpoint,
         config_file=config_file,
         output_dir=output_dir,
+        configured_rho=configured_rho,
+        inference_rho=inference_rho,
     )
 
     print("\n---------------- Selected Checkpoint Test ----------------")

@@ -8,7 +8,7 @@ base:
   n_epochs: 200
   num_workers: 8
   gpu_id: 0
-  # Reproduce the original ALMT train.py test-every-epoch reporting protocol.
+  # Select one checkpoint on validation, then evaluate test once.
   evaluation_protocol: validation_selected
   # A validation-selected checkpoint is still saved for controlled analysis.
   selection_metric: Mult_acc_7
