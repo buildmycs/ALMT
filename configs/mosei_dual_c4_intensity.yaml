@@ -1,11 +1,11 @@
 base:
   project_name: ALMT_MOSEI_Dual_C4_Intensity
   ckpt_root: ./ckpt
-  seed: 0
+  seed: 1111
   lr: 0.0001
   weight_decay: 0.0001
   batch_size: 32
-  n_epochs: 40
+  n_epochs: 200
   num_workers: 8
   gpu_id: 0
   # Match the MOSI workflow: select on validation and evaluate test once.
@@ -50,7 +50,7 @@ model:
 
   # Fine-grained Intensity Parameters
   use_intensity_objective: true
-  ordinal_prediction_weight: 0.2
+  ordinal_prediction_weight: 0.1
   contrastive_projection_dim: 64
   contrastive_projection_dropout: 0.1
 
