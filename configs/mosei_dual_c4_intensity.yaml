@@ -1,7 +1,7 @@
 base:
   project_name: ALMT_MOSEI_Dual_C4_Intensity_rho000_ord020_e50_wu5
   ckpt_root: ./ckpt
-  seed: 1111
+  seed: 0
   lr: 0.0001
   weight_decay: 0.0001
   batch_size: 32
