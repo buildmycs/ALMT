@@ -67,7 +67,7 @@ validation 后处理参数，不要把它写回 YAML 后重新训练，也不要
 python scripts/evaluate_selected_test.py \
   --config_file configs/mosei_dual_c4_intensity.yaml \
   --checkpoint ckpt/ALMT_MOSEI_Dual_C4_Intensity/best_validation_model.pth \
-  --ordinal-prediction-weight 0.17 \
+  --ordinal-prediction-weight 0.02 \
   --output-dir ckpt/ALMT_MOSEI_Dual_C4_Intensity/rho_05_test \
   --gpu_id 0
 ```
