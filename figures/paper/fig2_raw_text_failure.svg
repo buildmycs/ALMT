@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="407.52pt" height="213.66pt" viewBox="0 0 407.52 213.66" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-09-09T18:18:18.358167</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.10.0, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 213.66 
+L 407.52 213.66 
+L 407.52 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 16.6905 201.104151 
+L 188.694 201.104151 
+Q 193.2138 201.104151 193.2138 196.396981 
+L 193.2138 36.091698 
+Q 193.2138 31.384528 188.694 31.384528 
+L 16.6905 31.384528 
+Q 12.1707 31.384528 12.1707 36.091698 
+L 12.1707 196.396981 
+Q 12.1707 201.104151 16.6905 201.104151 
+z
+" clip-path="url(#pa867940b7c)" style="fill: #f7f9fc; stroke: #c8d0dc; stroke-width: 0.9; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 192.705408 114.544528 
+Q 198.110608 114.544528 202.118266 114.544528 
+" clip-path="url(#pa867940b7c)" style="fill: none; stroke: #b83a45; stroke-width: 1.25; stroke-linecap: round"/>
+    <path d="M 198.918266 112.944528 
+L 202.118266 114.544528 
+L 198.918266 116.144528 
+z
+" clip-path="url(#pa867940b7c)" style="fill: #b83a45; stroke: #b83a45; stroke-width: 1.25; stroke-linecap: round"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 296.212372 77.693852 
+Q 305.20406 86.824183 313.372025 95.11809 
+" clip-path="url(#pa867940b7c)" style="fill: none; stroke: #b83a45; stroke-width: 1.05; stroke-linecap: round"/>
+    <path d="M 312.266654 91.715421 
+L 313.372025 95.11809 
+L 309.986667 93.960786 
+z
+" clip-path="url(#pa867940b7c)" style="fill: #b83a45; stroke: #b83a45; stroke-width: 1.05; stroke-linecap: round"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 296.604715 118.838046 
+Q 305.205116 116.374889 312.676955 114.234953 
+" clip-path="url(#pa867940b7c)" style="fill: none; stroke: #8793a6; stroke-width: 1.05; stroke-linecap: round"/>
+    <path d="M 309.160107 113.577852 
+L 312.676955 114.234953 
+L 310.041165 116.654171 
+z
+" clip-path="url(#pa867940b7c)" style="fill: #8793a6; stroke: #8793a6; stroke-width: 1.05; stroke-linecap: round"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 295.94754 160.596844 
+Q 305.205685 145.531304 313.849199 131.465941 
+" clip-path="url(#pa867940b7c)" style="fill: none; stroke: #8793a6; stroke-width: 1.05; stroke-linecap: round"/>
+    <path d="M 310.810611 133.354588 
+L 313.849199 131.465941 
+L 313.536964 135.029999 
+z
+" clip-path="url(#pa867940b7c)" style="fill: #8793a6; stroke: #8793a6; stroke-width: 1.05; stroke-linecap: round"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 318.5127 174.953208 
+L 389.0718 174.953208 
+Q 394.0938 174.953208 394.0938 169.723019 
+L 394.0938 61.458113 
+Q 394.0938 56.227925 389.0718 56.227925 
+L 318.5127 56.227925 
+Q 313.4907 56.227925 313.4907 61.458113 
+L 313.4907 169.723019 
+Q 313.4907 174.953208 318.5127 174.953208 
+z
+" clip-path="url(#pa867940b7c)" style="fill: #fce1e3; stroke: #b83a45; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 23.7213 77.410189 
+L 163.0818 77.410189 
+Q 166.3461 77.410189 166.3461 74.010566 
+L 166.3461 57.796981 
+Q 166.3461 54.397358 163.0818 54.397358 
+L 23.7213 54.397358 
+Q 20.457 54.397358 20.457 57.796981 
+L 20.457 74.010566 
+Q 20.457 77.410189 23.7213 77.410189 
+z
+" clip-path="url(#pa867940b7c)" style="fill: #ffffff; stroke: #d6dce5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 35.523 106.960755 
+L 179.1522 106.960755 
+Q 182.4165 106.960755 182.4165 103.561132 
+L 182.4165 84.732453 
+Q 182.4165 81.33283 179.1522 81.33283 
+L 35.523 81.33283 
+Q 32.2587 81.33283 32.2587 84.732453 
+L 32.2587 103.561132 
+Q 32.2587 106.960755 35.523 106.960755 
+z
+" clip-path="url(#pa867940b7c)" style="fill: #ffffff; stroke: #d6dce5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 23.7213 142.787547 
+L 178.9011 142.787547 
+Q 182.1654 142.787547 182.1654 139.387925 
+L 182.1654 117.944151 
+Q 182.1654 114.544528 178.9011 114.544528 
+L 23.7213 114.544528 
+Q 20.457 114.544528 20.457 117.944151 
+L 20.457 139.387925 
+Q 20.457 142.787547 23.7213 142.787547 
+z
+" clip-path="url(#pa867940b7c)" style="fill: #fce1e3; stroke: #b83a45; stroke-width: 1.15; stroke-linejoin: miter"/>
+   </g>
+   <g id="line2d_1">
+    <path d="M 40.545 155.078491 
+L 46.5714 158.216604 
+L 52.0956 152.724906 
+L 57.6198 156.909057 
+L 63.144 153.770943 
+L 68.6682 157.432075 
+L 74.1924 154.293962 
+L 79.7166 156.386038 
+L 85.2408 154.816981 
+L 90.765 156.124528 
+" clip-path="url(#pa867940b7c)" style="fill: none; stroke: #27806e; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_2">
+    <path d="M 41.8005 173.90717 
+L 51.8445 173.122642 
+L 61.8885 174.168679 
+L 71.9325 173.384151 
+L 81.9765 173.90717 
+L 90.765 173.64566 
+" clip-path="url(#pa867940b7c)" style="fill: none; stroke: #54813f; stroke-linecap: square"/>
+    <defs>
+     <path id="m82e7af899f" d="M 0 0.9 
+C 0.238683 0.9 0.467622 0.80517 0.636396 0.636396 
+C 0.80517 0.467622 0.9 0.238683 0.9 0 
+C 0.9 -0.238683 0.80517 -0.467622 0.636396 -0.636396 
+C 0.467622 -0.80517 0.238683 -0.9 0 -0.9 
+C -0.238683 -0.9 -0.467622 -0.80517 -0.636396 -0.636396 
+C -0.80517 -0.467622 -0.9 -0.238683 -0.9 0 
+C -0.9 0.238683 -0.80517 0.467622 -0.636396 0.636396 
+C -0.467622 0.80517 -0.238683 0.9 0 0.9 
+z
+" style="stroke: #54813f"/>
+    </defs>
+    <g clip-path="url(#pa867940b7c)">
+     <use xlink:href="#m82e7af899f" x="41.8005" y="173.90717" style="fill: #54813f; stroke: #54813f"/>
+     <use xlink:href="#m82e7af899f" x="51.8445" y="173.122642" style="fill: #54813f; stroke: #54813f"/>
+     <use xlink:href="#m82e7af899f" x="61.8885" y="174.168679" style="fill: #54813f; stroke: #54813f"/>
+     <use xlink:href="#m82e7af899f" x="71.9325" y="173.384151" style="fill: #54813f; stroke: #54813f"/>
+     <use xlink:href="#m82e7af899f" x="81.9765" y="173.90717" style="fill: #54813f; stroke: #54813f"/>
+     <use xlink:href="#m82e7af899f" x="90.765" y="173.64566" style="fill: #54813f; stroke: #54813f"/>
+    </g>
+   </g>
+   <g id="patch_11">
+    <path d="M 207.0243 93.100755 
+L 293.6538 93.100755 
+Q 296.9181 93.100755 296.9181 89.701132 
+L 296.9181 63.550189 
+Q 296.9181 60.150566 293.6538 60.150566 
+L 207.0243 60.150566 
+Q 203.76 60.150566 203.76 63.550189 
+L 203.76 89.701132 
+Q 203.76 93.100755 207.0243 93.100755 
+z
+" clip-path="url(#pa867940b7c)" style="fill: #fce1e3; stroke: #b83a45; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_12">
+    <path d="M 207.0243 135.726792 
+L 293.6538 135.726792 
+Q 296.9181 135.726792 296.9181 132.32717 
+L 296.9181 106.176226 
+Q 296.9181 102.776604 293.6538 102.776604 
+L 207.0243 102.776604 
+Q 203.76 102.776604 203.76 106.176226 
+L 203.76 132.32717 
+Q 203.76 135.726792 207.0243 135.726792 
+z
+" clip-path="url(#pa867940b7c)" style="fill: #eef1f5; stroke: #8793a6; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_13">
+    <path d="M 207.0243 178.35283 
+L 293.6538 178.35283 
+Q 296.9181 178.35283 296.9181 174.953208 
+L 296.9181 148.802264 
+Q 296.9181 145.402642 293.6538 145.402642 
+L 207.0243 145.402642 
+Q 203.76 145.402642 203.76 148.802264 
+L 203.76 174.953208 
+Q 203.76 178.35283 207.0243 178.35283 
+z
+" clip-path="url(#pa867940b7c)" style="fill: #eef1f5; stroke: #8793a6; stroke-linejoin: miter"/>
+   </g>
+   <g id="line2d_3">
+    <path d="M 324.7902 133.373208 
+L 382.7943 133.373208 
+" clip-path="url(#pa867940b7c)" style="fill: none; stroke: #b83a45; stroke-opacity: 0.35; stroke-width: 0.8; stroke-linecap: square"/>
+   </g>
+   <g id="text_1">
+    <g id="patch_14">
+     <path d="M 11.470828 22.923381 
+L 16.888172 22.923381 
+Q 18.638172 22.923381 18.638172 21.173381 
+L 18.638172 14.398694 
+Q 18.638172 12.648694 16.888172 12.648694 
+L 11.470828 12.648694 
+Q 9.720828 12.648694 9.720828 14.398694 
+L 9.720828 21.173381 
+Q 9.720828 22.923381 11.470828 22.923381 
+z
+" style="fill: #b83a45; stroke: #b83a45; stroke-linejoin: miter"/>
+    </g>
+    <text style="font-weight: 700; font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #ffffff" x="14.1795" y="19.7176" transform="rotate(-0 14.1795 19.7176)">A</text>
+   </g>
+   <g id="text_2">
+    <text style="font-weight: 700; font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #172033" x="28.9944" y="19.460313" transform="rotate(-0 28.9944 19.460313)">Surface text can reverse the predicted polarity</text>
+   </g>
+   <g id="text_3">
+    <text style="font-size: 6.2px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #59657a" x="28.9944" y="28.388171" transform="rotate(-0 28.9944 28.388171)">Unresolved reference and implicit sarcasm make a negative utterance appear positive.</text>
+   </g>
+   <g id="text_4">
+    <text style="font-weight: 700; font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #59657a" x="22.4658" y="45.244528" transform="rotate(-0 22.4658 45.244528)">LOCAL DISCOURSE CONTEXT</text>
+   </g>
+   <g id="text_5">
+    <text style="font-size: 6.45px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #172033" x="26.9856" y="67.68357" transform="rotate(-0 26.9856 67.68357)">Turn -2   “The trailer looked exciting.”</text>
+   </g>
+   <g id="text_6">
+    <text style="font-size: 6.1px; font-family: 'DejaVu Sans'; fill: #172033" transform="translate(38.7873 92.368328)">Turn -1   “But the plot went nowhere.</text>
+    <text style="font-size: 6.1px; font-family: 'DejaVu Sans'; fill: #172033" transform="translate(38.7873 99.291694)">I kept checking the time.”</text>
+   </g>
+   <g id="text_7">
+    <text style="font-weight: 700; font-size: 6.7px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #172033" x="26.9856" y="130.488647" transform="rotate(-0 26.9856 130.488647)">Target      “Yeah, that was just great.”</text>
+   </g>
+   <g id="text_8">
+    <text style="font-weight: 700; font-size: 6.1px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #27806e" x="22.968" y="154.555472" transform="rotate(-0 22.968 154.555472)">Audio</text>
+   </g>
+   <g id="text_9">
+    <text style="font-size: 6px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #59657a" x="96.2892" y="156.734116" transform="rotate(-0 96.2892 156.734116)">subtle / ambiguous prosody</text>
+   </g>
+   <g id="text_10">
+    <text style="font-weight: 700; font-size: 6.1px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #54813f" x="22.968" y="173.122642" transform="rotate(-0 22.968 173.122642)">Visual</text>
+   </g>
+   <g id="text_11">
+    <text style="font-size: 6px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #59657a" x="96.2892" y="174.778267" transform="rotate(-0 96.2892 174.778267)">weak facial evidence</text>
+   </g>
+   <g id="text_12">
+    <text style="font-style: italic; font-size: 5.4px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #59657a" x="22.4658" y="189.336226" transform="rotate(-0 22.4658 189.336226)">Illustrative MOSI-style example (not a verbatim dataset sample)</text>
+   </g>
+   <g id="text_13">
+    <text style="font-weight: 700; font-size: 7.1px; font-family: 'DejaVu Sans'; fill: #172033" transform="translate(212.692409 74.52791)">Surface lexical cue</text>
+    <text style="font-weight: 700; font-size: 7.1px; font-family: 'DejaVu Sans'; fill: #172033" transform="translate(211.017253 82.586255)">“great”  →  positive</text>
+   </g>
+   <g id="text_14">
+    <text style="font-size: 6.8px; font-family: 'DejaVu Sans'; fill: #172033" transform="translate(213.911238 117.269147)">Unresolved reference</text>
+    <text style="font-size: 6.8px; font-family: 'DejaVu Sans'; fill: #172033" transform="translate(205.919644 124.986999)">What does “that” denote?</text>
+   </g>
+   <g id="text_15">
+    <text style="font-size: 6.2px; font-family: 'DejaVu Sans'; fill: #172033" transform="translate(224.362988 156.551684)">Implicit meaning</text>
+    <text style="font-size: 6.2px; font-family: 'DejaVu Sans'; fill: #172033" transform="translate(226.152753 163.588548)">Sarcastic intent</text>
+    <text style="font-size: 6.2px; font-family: 'DejaVu Sans'; fill: #172033" transform="translate(226.247691 170.625413)">remains hidden</text>
+   </g>
+   <g id="text_16">
+    <text style="font-weight: 700; font-size: 25px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #b83a45" x="353.9178" y="79.078438" transform="rotate(-0 353.9178 79.078438)">×</text>
+   </g>
+   <g id="text_17">
+    <text style="font-weight: 700; font-size: 7.2px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #b83a45" x="353.9178" y="91.531698" transform="rotate(-0 353.9178 91.531698)">POLARITY ERROR</text>
+   </g>
+   <g id="text_18">
+    <text style="font-size: 6px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #59657a" x="324.7902" y="112.452453" transform="rotate(-0 324.7902 112.452453)">Prediction</text>
+   </g>
+   <g id="text_19">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #172033" x="324.7902" y="123.958868" transform="rotate(-0 324.7902 123.958868)">Positive  (+1)</text>
+   </g>
+   <g id="text_20">
+    <text style="font-size: 6px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #59657a" x="324.7902" y="144.356604" transform="rotate(-0 324.7902 144.356604)">Reference</text>
+   </g>
+   <g id="text_21">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #172033" x="324.7902" y="155.863019" transform="rotate(-0 324.7902 155.863019)">Negative  (-2)</text>
+   </g>
+   <g id="text_22">
+    <text style="font-weight: 700; font-size: 5.8px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #b83a45" x="250.2135" y="192.997358" transform="rotate(-0 250.2135 192.997358)">Text ambiguity dominates when nonverbal evidence is weak.</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pa867940b7c">
+   <rect x="2.88" y="2.88" width="401.76" height="207.9"/>
+  </clipPath>
+ </defs>
+</svg>

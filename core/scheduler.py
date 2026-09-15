@@ -72,7 +72,30 @@ class GradualWarmupScheduler(_LRScheduler):
 
 
 def get_scheduler(optimizer, args):
-    scheduler_steplr = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=0.9 * args.base.n_epochs)
-    scheduler_warmup = GradualWarmupScheduler(optimizer, multiplier=1, total_epoch=0.1 * args.base.n_epochs, after_scheduler=scheduler_steplr)
+    n_epochs = int(args.base.n_epochs)
+    warmup_epochs = int(getattr(args.base, "lr_warmup_epochs", 5))
 
-    return scheduler_warmup
+    if n_epochs < 1:
+        raise ValueError("n_epochs must be at least 1")
+    if warmup_epochs < 0:
+        raise ValueError("lr_warmup_epochs must be non-negative")
+    if warmup_epochs >= n_epochs:
+        raise ValueError("lr_warmup_epochs must be smaller than n_epochs")
+
+    # Keep the warm-up duration independent of the total training budget.
+    # The cosine phase spans the remaining epochs instead of assuming that
+    # warm-up always occupies ten percent of training.
+    cosine_epochs = n_epochs - warmup_epochs
+    scheduler_cosine = torch.optim.lr_scheduler.CosineAnnealingLR(
+        optimizer,
+        T_max=cosine_epochs,
+    )
+    if warmup_epochs == 0:
+        return scheduler_cosine
+
+    return GradualWarmupScheduler(
+        optimizer,
+        multiplier=1,
+        total_epoch=warmup_epochs,
+        after_scheduler=scheduler_cosine,
+    )
