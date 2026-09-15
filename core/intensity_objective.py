@@ -1,5 +1,6 @@
 """Regression, balanced ordinal, and continuous intensity contrastive losses."""
 
+import math
 from types import SimpleNamespace
 
 import numpy as np
@@ -132,6 +133,9 @@ class SentimentIntensityObjective(nn.Module):
         contrastive_temperature=0.1,
         contrastive_label_temperature=0.5,
         auxiliary_warmup_epochs=5,
+        ordinal_decay_start_epoch=None,
+        ordinal_decay_end_epoch=None,
+        ordinal_decay_final_scale=0.0,
     ):
         super().__init__()
         self.regression_weight = float(regression_weight)
@@ -144,6 +148,39 @@ class SentimentIntensityObjective(nn.Module):
         ) < 0:
             raise ValueError("objective weights must be non-negative")
         self.auxiliary_warmup_epochs = int(auxiliary_warmup_epochs)
+        if self.auxiliary_warmup_epochs < 0:
+            raise ValueError("auxiliary_warmup_epochs must be non-negative")
+
+        decay_epochs = (ordinal_decay_start_epoch, ordinal_decay_end_epoch)
+        if (decay_epochs[0] is None) != (decay_epochs[1] is None):
+            raise ValueError(
+                "ordinal_decay_start_epoch and ordinal_decay_end_epoch "
+                "must either both be set or both be omitted"
+            )
+        self.ordinal_decay_start_epoch = (
+            None
+            if ordinal_decay_start_epoch is None
+            else int(ordinal_decay_start_epoch)
+        )
+        self.ordinal_decay_end_epoch = (
+            None
+            if ordinal_decay_end_epoch is None
+            else int(ordinal_decay_end_epoch)
+        )
+        self.ordinal_decay_final_scale = float(ordinal_decay_final_scale)
+        if not 0.0 <= self.ordinal_decay_final_scale <= 1.0:
+            raise ValueError("ordinal_decay_final_scale must be in [0, 1]")
+        if self.ordinal_decay_start_epoch is not None:
+            if self.ordinal_decay_start_epoch < self.auxiliary_warmup_epochs:
+                raise ValueError(
+                    "ordinal_decay_start_epoch must not precede the end of "
+                    "auxiliary warm-up"
+                )
+            if self.ordinal_decay_end_epoch <= self.ordinal_decay_start_epoch:
+                raise ValueError(
+                    "ordinal_decay_end_epoch must be greater than "
+                    "ordinal_decay_start_epoch"
+                )
         self.current_epoch = 1
         self.requires_auxiliary_outputs = (
             self.ordinal_weight > 0 or self.contrastive_weight > 0
@@ -177,6 +214,25 @@ class SentimentIntensityObjective(nn.Module):
         if self.auxiliary_warmup_epochs <= 0:
             return 1.0
         return min(self.current_epoch / self.auxiliary_warmup_epochs, 1.0)
+
+    def ordinal_scale(self):
+        """Return warm-up followed by an optional cosine decay multiplier."""
+        warmup_scale = self.auxiliary_scale()
+        if self.ordinal_decay_start_epoch is None:
+            return warmup_scale
+        if self.current_epoch <= self.ordinal_decay_start_epoch:
+            return warmup_scale
+        if self.current_epoch >= self.ordinal_decay_end_epoch:
+            return self.ordinal_decay_final_scale
+
+        decay_progress = (
+            (self.current_epoch - self.ordinal_decay_start_epoch)
+            / (self.ordinal_decay_end_epoch - self.ordinal_decay_start_epoch)
+        )
+        cosine_scale = 0.5 * (1.0 + math.cos(math.pi * decay_progress))
+        return self.ordinal_decay_final_scale + (
+            1.0 - self.ordinal_decay_final_scale
+        ) * cosine_scale
 
     def _balanced_ordinal_loss(self, logits, labels):
         targets = ordinal_targets(labels)
@@ -218,9 +274,11 @@ class SentimentIntensityObjective(nn.Module):
             )
 
         auxiliary_scale = self.auxiliary_scale()
+        ordinal_scale = self.ordinal_scale()
+        ordinal_effective_weight = self.ordinal_weight * ordinal_scale
         total_loss = (
             self.regression_weight * regression_loss
-            + auxiliary_scale * self.ordinal_weight * ordinal_loss
+            + ordinal_effective_weight * ordinal_loss
             + auxiliary_scale * self.contrastive_weight * contrastive_loss
         )
         values = {
@@ -229,6 +287,8 @@ class SentimentIntensityObjective(nn.Module):
             "ordinal": ordinal_loss.detach().item(),
             "contrastive": contrastive_loss.detach().item(),
             "auxiliary_scale": auxiliary_scale,
+            "ordinal_scale": ordinal_scale,
+            "ordinal_effective_weight": ordinal_effective_weight,
         }
         return total_loss, values
 
@@ -238,6 +298,9 @@ class SentimentIntensityObjective(nn.Module):
             "ordinal_weight": self.ordinal_weight,
             "contrastive_weight": self.contrastive_weight,
             "auxiliary_warmup_epochs": self.auxiliary_warmup_epochs,
+            "ordinal_decay_start_epoch": self.ordinal_decay_start_epoch,
+            "ordinal_decay_end_epoch": self.ordinal_decay_end_epoch,
+            "ordinal_decay_final_scale": self.ordinal_decay_final_scale,
             "class_counts_-3_to_+3": self.class_counts.tolist(),
             "contrastive_class_weights": self.class_weights.tolist(),
             "ordinal_positive_weights": self.ordinal_positive_weights.tolist(),
@@ -268,5 +331,14 @@ def build_sentiment_objective(args, train_labels):
         ),
         auxiliary_warmup_epochs=getattr(
             objective, "auxiliary_warmup_epochs", 5
+        ),
+        ordinal_decay_start_epoch=getattr(
+            objective, "ordinal_decay_start_epoch", None
+        ),
+        ordinal_decay_end_epoch=getattr(
+            objective, "ordinal_decay_end_epoch", None
+        ),
+        ordinal_decay_final_scale=getattr(
+            objective, "ordinal_decay_final_scale", 0.0
         ),
     )

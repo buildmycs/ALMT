@@ -533,6 +533,26 @@ def main():
         writer.add_scalar(
             "valid/loss", validation_ret["loss_recorder"].value_avg, epoch
         )
+        writer.add_scalar(
+            "train/learning_rate", optimizer.param_groups[0]["lr"], epoch
+        )
+        for name, value in validation_ret["results"].items():
+            writer.add_scalar(f"valid/{name}", value, epoch)
+        for prediction_name in (
+            "regression_predictions",
+            "ordinal_predictions",
+        ):
+            if prediction_name not in validation_ret:
+                continue
+            component_name = prediction_name.removesuffix("_predictions")
+            component_results = metrics_fn(
+                validation_ret[prediction_name],
+                validation_ret["labels"],
+            )
+            for name, value in component_results.items():
+                writer.add_scalar(
+                    f"valid_{component_name}/{name}", value, epoch
+                )
         if legacy_test_oracle:
             writer.add_scalar(
                 "test/loss", test_ret["loss_recorder"].value_avg, epoch

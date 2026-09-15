@@ -13,7 +13,23 @@ L = Lreg + lambda_ord * Lord + lambda_con * Lcon
 ```
 
 前五轮对两个辅助损失进行线性 warm-up，降低训练初期随机有序头和对比投影对已
-有效的 ALMT 回归主干造成的扰动。
+有效的 ALMT 回归主干造成的扰动。有序损失还可单独配置余弦衰减；这不会改变
+对比损失的 warm-up 或权重。
+
+例如下面的设置在 epoch 20 前保持完整有序权重，随后平滑衰减，并从 epoch 40
+开始只保留回归主目标：
+
+```yaml
+objective:
+  ordinal_weight: 0.2
+  auxiliary_warmup_epochs: 5
+  ordinal_decay_start_epoch: 20
+  ordinal_decay_end_epoch: 40
+  ordinal_decay_final_scale: 0.0
+```
+
+实际有序权重会额外记录为 `objective/ordinal_effective_weight`。省略两个 decay
+epoch 参数时保持原来的行为，即 warm-up 后始终使用固定 `ordinal_weight`。
 
 ## 2. 连续回归
 
