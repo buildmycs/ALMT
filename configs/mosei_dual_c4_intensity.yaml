@@ -8,7 +8,7 @@ base:
   # Validation-selected checkpoints have appeared around epochs 11-31.
   # Fifty epochs still leaves room beyond the latest peak without returning
   # to the severe overfitting observed late in the 200-epoch run.
-  n_epochs: 50
+  n_epochs: 100
   # Fixed learning-rate warm-up; it no longer changes with n_epochs.
   lr_warmup_epochs: 5
   num_workers: 8
@@ -55,7 +55,7 @@ model:
 
   # Fine-grained Intensity Parameters
   use_intensity_objective: true
-  ordinal_prediction_weight: 0.0
+  ordinal_prediction_weight: 0.2
   contrastive_projection_dim: 64
   contrastive_projection_dropout: 0.1
 
