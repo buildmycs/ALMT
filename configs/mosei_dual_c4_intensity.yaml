@@ -1,16 +1,15 @@
 base:
-  project_name: ALMT_MOSEI_Dual_C4_Intensity_rho000_ord020_decay20to40_e50_wu5
+  project_name: ALMT_MOSEI_Dual_C4_Intensity_rho020_ord020_fixed_e100_wu10_seed0
   ckpt_root: ./ckpt
   seed: 0
   lr: 0.0001
   weight_decay: 0.0001
   batch_size: 32
-  # Validation-selected checkpoints have appeared around epochs 11-31.
-  # Fifty epochs still leaves room beyond the latest peak without returning
-  # to the severe overfitting observed late in the 200-epoch run.
+  # Re-evaluate the reported fixed-weight setup. One hundred epochs is only
+  # the training budget; validation Acc-7 still selects the checkpoint.
   n_epochs: 100
-  # Fixed learning-rate warm-up; it no longer changes with n_epochs.
-  lr_warmup_epochs: 5
+  # Ten epochs exactly reproduces a 10% LR warm-up for this 100-epoch run.
+  lr_warmup_epochs: 10
   num_workers: 8
   gpu_id: 0
   # Match the MOSI workflow: select on validation and evaluate test once.
@@ -55,7 +54,7 @@ model:
 
   # Fine-grained Intensity Parameters
   use_intensity_objective: true
-  ordinal_prediction_weight: 0.0
+  ordinal_prediction_weight: 0.2
   contrastive_projection_dim: 64
   contrastive_projection_dropout: 0.1
 
@@ -82,9 +81,5 @@ objective:
   contrastive_temperature: 0.1
   contrastive_label_temperature: 0.5
   auxiliary_warmup_epochs: 5
-  # Keep the useful early ordinal supervision, then release the shared
-  # backbone so the final training stage focuses on the regression target.
-  ordinal_decay_start_epoch: 20
-  ordinal_decay_end_epoch: 40
-  ordinal_decay_final_scale: 0.0
+  # No ordinal_decay_* fields: keep ordinal_weight fixed after warm-up.
   max_balance_weight: 5.0
