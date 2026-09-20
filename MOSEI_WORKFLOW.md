@@ -43,7 +43,7 @@ best_validation_selection.json
 
 ```bash
 python scripts/bestweight.py \
-  --predictions ckpt/ALMT_MOSEI_Dual_C4_Intensity/best_validation_predictions.npz \
+  --predictions ckpt/ALMT_MOSEI_Dual_C4_Intensity_rho020_ord020_fixed_e100_wu10_seed0/best_validation_predictions.npz \
   --step 0.01 \
   --top-k 10
 ```
@@ -66,9 +66,9 @@ validation 后处理参数，不要把它写回 YAML 后重新训练，也不要
 ```bash
 python scripts/evaluate_selected_test.py \
   --config_file configs/mosei_dual_c4_intensity.yaml \
-  --checkpoint ckpt/ALMT_MOSEI_Dual_C4_Intensity/best_validation_model.pth \
-  --ordinal-prediction-weight 0.02 \
-  --output-dir ckpt/ALMT_MOSEI_Dual_C4_Intensity/rho_05_test \
+  --checkpoint ckpt/ALMT_MOSEI_Dual_C4_Intensity_rho020_ord020_fixed_e100_wu10_seed0/best_validation_model.pth \
+  --ordinal-prediction-weight 0.0 \
+  --output-dir ckpt/ALMT_MOSEI_Dual_C4_Intensity_rho020_ord020_fixed_e100_wu10_seed0/rho_05_test \
   --gpu_id 0
 ```
 
