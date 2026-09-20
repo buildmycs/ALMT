@@ -1,54 +1,54 @@
 {
-  "prediction_file": "ckpt/ALMT_MOSEI_Dual_C4_Intensity/best_validation_predictions.npz",
+  "prediction_file": "ckpt/ALMT_MOSEI_Dual_C4_Intensity_rho020_ord020_fixed_e100_wu10_seed0/best_validation_predictions.npz",
   "sample_count": 1871,
-  "acc7": 0.5371459112773918,
-  "macro_recall": 0.3377499917860679,
-  "macro_f1": 0.36034730847359114,
-  "mae": 0.546363773195741,
-  "correlation": 0.7125814240134618,
+  "acc7": 0.5323356493853554,
+  "macro_recall": 0.31637810038114683,
+  "macro_f1": 0.321958024459086,
+  "mae": 0.5291524356990687,
+  "correlation": 0.7455885919308268,
   "rounding": "np.round(np.clip(value, -3, 3))",
   "per_class": {
     "-3": {
-      "recall": 0.125,
-      "precision": 0.6,
-      "f1": 0.20689655172413793,
+      "recall": 0.0,
+      "precision": 0.0,
+      "f1": 0.0,
       "support": 24,
-      "predicted": 5
+      "predicted": 0
     },
     "-2": {
-      "recall": 0.38181818181818183,
-      "precision": 0.5185185185185185,
-      "f1": 0.4397905759162304,
+      "recall": 0.2909090909090909,
+      "precision": 0.37209302325581395,
+      "f1": 0.32653061224489793,
       "support": 110,
-      "predicted": 81
+      "predicted": 86
     },
     "-1": {
-      "recall": 0.4344262295081967,
-      "precision": 0.41245136186770426,
-      "f1": 0.4231536926147704,
+      "recall": 0.3483606557377049,
+      "precision": 0.3953488372093023,
+      "f1": 0.3703703703703704,
       "support": 244,
-      "predicted": 257
+      "predicted": 215
     },
     "0": {
-      "recall": 0.7269461077844311,
-      "precision": 0.6057884231536926,
-      "f1": 0.6608600979858464,
+      "recall": 0.7065868263473054,
+      "precision": 0.6256627783669141,
+      "f1": 0.6636670416197974,
       "support": 835,
-      "predicted": 1002
+      "predicted": 943
     },
     "1": {
-      "recall": 0.4297872340425532,
-      "precision": 0.46543778801843316,
-      "f1": 0.4469026548672566,
+      "recall": 0.4723404255319149,
+      "precision": 0.4605809128630705,
+      "f1": 0.4663865546218487,
       "support": 470,
-      "predicted": 434
+      "predicted": 482
     },
     "2": {
-      "recall": 0.26627218934911245,
-      "precision": 0.4891304347826087,
-      "f1": 0.3448275862068966,
+      "recall": 0.39644970414201186,
+      "precision": 0.46206896551724136,
+      "f1": 0.42675159235668786,
       "support": 169,
-      "predicted": 92
+      "predicted": 145
     },
     "3": {
       "recall": 0.0,
