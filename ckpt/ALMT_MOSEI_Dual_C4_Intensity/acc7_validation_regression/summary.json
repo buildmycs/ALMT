@@ -1,61 +1,61 @@
 {
   "prediction_file": "ckpt/ALMT_MOSEI_Dual_C4_Intensity_rho020_ord020_fixed_e100_wu10_seed0/best_validation_predictions.npz",
   "sample_count": 1871,
-  "acc7": 0.5376803848209514,
-  "macro_recall": 0.35512445712051466,
-  "macro_f1": 0.3817468816829038,
-  "mae": 0.5242657927683749,
-  "correlation": 0.7508097390895315,
+  "acc7": 0.5339390700160342,
+  "macro_recall": 0.3192938364616607,
+  "macro_f1": 0.32644477070718586,
+  "mae": 0.5277470605918776,
+  "correlation": 0.7445438605176035,
   "rounding": "np.round(np.clip(value, -3, 3))",
   "per_class": {
     "-3": {
-      "recall": 0.20833333333333334,
-      "precision": 0.8333333333333334,
-      "f1": 0.33333333333333337,
+      "recall": 0.0,
+      "precision": 0.0,
+      "f1": 0.0,
       "support": 24,
-      "predicted": 6
+      "predicted": 0
     },
     "-2": {
-      "recall": 0.4090909090909091,
-      "precision": 0.5,
-      "f1": 0.45,
+      "recall": 0.34545454545454546,
+      "precision": 0.4222222222222222,
+      "f1": 0.37999999999999995,
       "support": 110,
       "predicted": 90
     },
     "-1": {
-      "recall": 0.3524590163934426,
-      "precision": 0.4056603773584906,
-      "f1": 0.3771929824561403,
+      "recall": 0.3975409836065574,
+      "precision": 0.40082644628099173,
+      "f1": 0.39917695473251025,
       "support": 244,
-      "predicted": 212
+      "predicted": 242
     },
     "0": {
-      "recall": 0.6754491017964072,
+      "recall": 0.6898203592814371,
       "precision": 0.631578947368421,
-      "f1": 0.6527777777777778,
+      "f1": 0.6594161419576416,
       "support": 835,
-      "predicted": 893
+      "predicted": 912
     },
     "1": {
-      "recall": 0.5446808510638298,
-      "precision": 0.4563279857397504,
-      "f1": 0.49660523763336556,
+      "recall": 0.5063829787234042,
+      "precision": 0.4541984732824427,
+      "f1": 0.4788732394366197,
       "support": 470,
-      "predicted": 561
+      "predicted": 524
     },
     "2": {
       "recall": 0.2958579881656805,
-      "precision": 0.4672897196261682,
-      "f1": 0.36231884057971014,
+      "precision": 0.4854368932038835,
+      "f1": 0.36764705882352944,
       "support": 169,
-      "predicted": 107
+      "predicted": 103
     },
     "3": {
       "recall": 0.0,
       "precision": 0.0,
       "f1": 0.0,
       "support": 19,
-      "predicted": 2
+      "predicted": 0
     }
   }
 }
