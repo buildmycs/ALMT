@@ -2,10 +2,10 @@
   "selection_split": "validation",
   "predictions": "ckpt/ALMT_MOSEI_Dual_C4_Intensity_rho020_ord020_fixed_e100_wu10_seed0/best_validation_predictions.npz",
   "best": {
-    "rho": 0.44,
-    "acc7": 0.5440940673436665,
-    "extreme_macro_recall": 0.13048245614035087,
-    "mae": 0.5287234131745767
+    "rho": 0.32,
+    "acc7": 0.5360769641902726,
+    "extreme_macro_recall": 0.0,
+    "mae": 0.5368907197263392
   },
   "candidate_count": 101,
   "warning": "Apply the selected rho once on test; never search test rho."
