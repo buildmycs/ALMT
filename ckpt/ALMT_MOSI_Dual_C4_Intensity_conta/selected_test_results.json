@@ -1,0 +1,37 @@
+{
+  "evaluation_protocol": "single_test_evaluation_of_validation_selected_checkpoint",
+  "config_file": "configs/mosi_dual_c4_intensity.yaml",
+  "selected_epoch": 31,
+  "validation_selection": {
+    "selected_epoch": 31,
+    "primary_metric": "Mult_acc_7",
+    "primary_mode": "max",
+    "primary_value": 0.4628821015357971,
+    "secondary_metric": "MAE",
+    "secondary_mode": "min",
+    "secondary_value": 0.7032421231269836,
+    "validation_results": {
+      "Has0_acc_2": 0.8341,
+      "Has0_F1_score": 0.833,
+      "Non0_acc_2": 0.8472,
+      "Non0_F1_score": 0.8456,
+      "Mult_acc_5": 0.5371,
+      "Mult_acc_7": 0.4629,
+      "MAE": 0.7031999826431274,
+      "Corr": 0.8095
+    }
+  },
+  "configured_ordinal_prediction_weight": 0.8,
+  "inference_ordinal_prediction_weight": 0.8,
+  "test_sample_count": 686,
+  "test_results": {
+    "Has0_acc_2": 0.8003,
+    "Has0_F1_score": 0.8007,
+    "Non0_acc_2": 0.811,
+    "Non0_F1_score": 0.8119,
+    "Mult_acc_5": 0.4767,
+    "Mult_acc_7": 0.4242,
+    "MAE": 0.7721999883651733,
+    "Corr": 0.7706
+  }
+}
