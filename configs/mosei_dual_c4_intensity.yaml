@@ -1,9 +1,9 @@
 base:
-  project_name: ALMT_MOSEI_Dual_C4_Intensity_rho045_ord020_fixed_e100_wu10_lr5e-5_seed0
+  project_name: ALMT_MOSEI_Dual_C4_Intensity_rho045_ord020_fixed_e100_wu10_lr3e-5_seed0
   ckpt_root: ./ckpt
   seed: 0
-  # Single-variable comparison against the rho=0.45, ordinal=0.2 baseline.
-  lr: 0.00005
+  # Single-variable comparison against the 5e-5 LR, rho=0.45, ordinal=0.2 run.
+  lr: 0.00003
   weight_decay: 0.0001
   batch_size: 32
   # Preserve the baseline cosine schedule while lowering the peak LR.
