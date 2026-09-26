@@ -1,12 +1,13 @@
 base:
-  project_name: ALMT_MOSEI_Dual_C4_Intensity_rho020_ord020_fixed_e100_wu10_seed0
+  project_name: ALMT_MOSEI_Dual_C4_Intensity_rho045_ord020_fixed_e100_wu10_lr5e-5_seed0
   ckpt_root: ./ckpt
   seed: 0
-  lr: 0.0001
+  # Single-variable comparison against the rho=0.45, ordinal=0.2 baseline.
+  lr: 0.00005
   weight_decay: 0.0001
   batch_size: 32
-  # Re-evaluate the reported fixed-weight setup. One hundred epochs is only
-  # the training budget; validation Acc-7 still selects the checkpoint.
+  # Preserve the baseline cosine schedule while lowering the peak LR.
+  # Validation Acc-7 selects the checkpoint within this training budget.
   n_epochs: 100
   # Ten epochs exactly reproduces a 10% LR warm-up for this 100-epoch run.
   lr_warmup_epochs: 10

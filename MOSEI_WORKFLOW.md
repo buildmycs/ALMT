@@ -17,6 +17,10 @@ datasets/mosei/unaligned_50_dual_qwen25_c4.pkl
 
 ## 2. 训练并按 Validation Acc-7 选 checkpoint
 
+本轮实验将学习率从 `1e-4` 降至 `5e-5`；训练融合权重为 `0.45`，有序损失权重为
+`0.2`，训练预算为 100 epoch，学习率 warmup 为 10 epoch，seed 为 0。
+使用独立的 `project_name` 保存本轮结果，避免覆盖原基线。
+
 ```bash
 python train_dual.py \
   --config_file configs/mosei_dual_c4_intensity.yaml \
@@ -26,7 +30,7 @@ python train_dual.py \
 输出目录为：
 
 ```text
-ckpt/ALMT_MOSEI_Dual_C4_Intensity/
+ckpt/ALMT_MOSEI_Dual_C4_Intensity_rho045_ord020_fixed_e100_wu10_lr5e-5_seed0/
 ```
 
 训练完成后确认存在：
@@ -43,7 +47,7 @@ best_validation_selection.json
 
 ```bash
 python scripts/bestweight.py \
-  --predictions ckpt/ALMT_MOSEI_Dual_C4_Intensity_rho020_ord020_fixed_e100_wu10_seed0/best_validation_predictions.npz \
+  --predictions ckpt/ALMT_MOSEI_Dual_C4_Intensity_rho045_ord020_fixed_e100_wu10_lr5e-5_seed0/best_validation_predictions.npz \
   --step 0.01 \
   --top-k 10
 ```
@@ -51,7 +55,7 @@ python scripts/bestweight.py \
 结果会保存到：
 
 ```text
-ckpt/ALMT_MOSEI_Dual_C4_Intensity/rho_search_validation/
+ckpt/ALMT_MOSEI_Dual_C4_Intensity_rho045_ord020_fixed_e100_wu10_lr5e-5_seed0/rho_search_validation/
 ├── rho_search_all.csv
 └── rho_search_summary.json
 ```
@@ -61,14 +65,15 @@ validation 后处理参数，不要把它写回 YAML 后重新训练，也不要
 
 ## 4. 使用选定 rho 在 Test 上评测一次
 
-假设 validation 选出的 rho 是 `0.35`：
+以下以 validation 选出的 rho 为 `0.35` 举例；实际运行时替换为本轮验证集搜索出的值，
+并同步调整输出目录名称。
 
 ```bash
 python scripts/evaluate_selected_test.py \
   --config_file configs/mosei_dual_c4_intensity.yaml \
-  --checkpoint ckpt/ALMT_MOSEI_Dual_C4_Intensity_rho020_ord020_fixed_e100_wu10_seed0/best_validation_model.pth \
-  --ordinal-prediction-weight 0.0 \
-  --output-dir ckpt/ALMT_MOSEI_Dual_C4_Intensity_rho020_ord020_fixed_e100_wu10_seed0/rho_05_test \
+  --checkpoint ckpt/ALMT_MOSEI_Dual_C4_Intensity_rho045_ord020_fixed_e100_wu10_lr5e-5_seed0/best_validation_model.pth \
+  --ordinal-prediction-weight 0.35 \
+  --output-dir ckpt/ALMT_MOSEI_Dual_C4_Intensity_rho045_ord020_fixed_e100_wu10_lr5e-5_seed0/rho_035_test \
   --gpu_id 0
 ```
 
@@ -79,9 +84,9 @@ python scripts/evaluate_selected_test.py \
 
 ```bash
 python scripts/analyze_acc7.py \
-  --predictions ckpt/ALMT_MOSEI_Dual_C4_Intensity/rho_035_test/selected_test_predictions.npz \
+  --predictions ckpt/ALMT_MOSEI_Dual_C4_Intensity_rho045_ord020_fixed_e100_wu10_lr5e-5_seed0/rho_035_test/selected_test_predictions.npz \
   --title "MOSEI test - validation-selected rho=0.35" \
-  --output-dir ckpt/ALMT_MOSEI_Dual_C4_Intensity/rho_035_test/acc7
+  --output-dir ckpt/ALMT_MOSEI_Dual_C4_Intensity_rho045_ord020_fixed_e100_wu10_lr5e-5_seed0/rho_035_test/acc7
 ```
 
 ## 6. 与 MOSI 一致但不能直接复用的内容
