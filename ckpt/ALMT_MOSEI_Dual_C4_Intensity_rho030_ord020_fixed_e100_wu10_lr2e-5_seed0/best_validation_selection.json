@@ -1,0 +1,29 @@
+{
+  "selected_epoch": 70,
+  "primary_metric": "Mult_acc_7",
+  "primary_mode": "max",
+  "primary_value": 0.5414217114448547,
+  "secondary_metric": "MAE",
+  "secondary_mode": "min",
+  "secondary_value": 0.5057759284973145,
+  "validation_results": {
+    "Has0_acc_2": 0.8268,
+    "Has0_F1_score": 0.833,
+    "Non0_acc_2": 0.8651,
+    "Non0_F1_score": 0.8657,
+    "Mult_acc_5": 0.5601,
+    "Mult_acc_7": 0.5414,
+    "MAE": 0.5058000087738037,
+    "Corr": 0.768
+  },
+  "test_results": {
+    "Has0_acc_2": 0.8137,
+    "Has0_F1_score": 0.8191,
+    "Non0_acc_2": 0.8544,
+    "Non0_F1_score": 0.8545,
+    "Mult_acc_5": 0.56,
+    "Mult_acc_7": 0.5402,
+    "MAE": 0.5221999883651733,
+    "Corr": 0.7861
+  }
+}

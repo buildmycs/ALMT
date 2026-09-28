@@ -21,17 +21,17 @@
       "Corr": 0.766
     }
   },
-  "configured_ordinal_prediction_weight": 0.45,
-  "inference_ordinal_prediction_weight": 0.2,
+  "configured_ordinal_prediction_weight": 0.3,
+  "inference_ordinal_prediction_weight": 0.1,
   "test_sample_count": 4659,
   "test_results": {
-    "Has0_acc_2": 0.8334,
-    "Has0_F1_score": 0.8363,
-    "Non0_acc_2": 0.8588,
-    "Non0_F1_score": 0.8578,
-    "Mult_acc_5": 0.552,
-    "Mult_acc_7": 0.539,
-    "MAE": 0.5220000147819519,
-    "Corr": 0.7849
+    "Has0_acc_2": 0.8382,
+    "Has0_F1_score": 0.8399,
+    "Non0_acc_2": 0.8572,
+    "Non0_F1_score": 0.8555,
+    "Mult_acc_5": 0.5497,
+    "Mult_acc_7": 0.5379,
+    "MAE": 0.5302000045776367,
+    "Corr": 0.7818
   }
 }
