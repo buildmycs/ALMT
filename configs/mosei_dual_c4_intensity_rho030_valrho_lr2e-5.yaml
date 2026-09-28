@@ -1,8 +1,8 @@
 base:
-  project_name: ALMT_MOSEI_Dual_C4_Intensity_rho030_ord020_fixed_e100_wu10_lr2e-5_fixedselect_seed0
+  project_name: ALMT_MOSEI_Dual_C4_Intensity_rho030_ord020_fixed_e100_wu10_lr2e-5_valrho_seed0
   ckpt_root: ./ckpt
   seed: 0
-  # Restore fixed training-rho checkpoint selection; keep optimization unchanged.
+  # Keep optimization fixed; jointly select checkpoint and inference rho on validation.
   lr: 0.00002
   weight_decay: 0.0001
   batch_size: 32
@@ -19,9 +19,9 @@ base:
   selection_mode: max
   selection_secondary_metric: MAE
   selection_secondary_mode: min
-  # Disable per-epoch rho search: select by the configured training rho (0.30).
-  # After checkpoint selection, optional inference-rho search uses validation only.
-  validation_rho_candidates: null
+  # Fixed before training. Does not change training rho or gradients.
+  # The selected rho is saved with the checkpoint and used automatically on test.
+  validation_rho_candidates: [0.0, 0.1, 0.2, 0.3]
 
 dataset:
   datasetName: mosei

@@ -59,7 +59,9 @@ class TinyModel(torch.nn.Module):
 
 
 class ValidationRhoWorkflowTest(unittest.TestCase):
-    def run_workflow(self, candidates, expected_epoch, expected_rho):
+    def run_workflow(
+        self, candidates, expected_epoch, expected_rho, use_default_config=False
+    ):
         dataset = SimpleNamespace(
             labels={"M": np.array([0.0, 1.0])},
             ids=["sample-a", "sample-b"],
@@ -84,10 +86,11 @@ class ValidationRhoWorkflowTest(unittest.TestCase):
             with open(ROOT / "configs/mosei_dual_c4_intensity.yaml", encoding="utf-8") as file:
                 config = yaml.safe_load(file)
             config["base"].update(ckpt_root=temp_dir, project_name="smoke", n_epochs=2)
-            if candidates is None:
-                config["base"].pop("validation_rho_candidates", None)
-            else:
-                config["base"]["validation_rho_candidates"] = candidates
+            if not use_default_config:
+                if candidates is None:
+                    config["base"].pop("validation_rho_candidates", None)
+                else:
+                    config["base"]["validation_rho_candidates"] = candidates
             config_path = Path(temp_dir) / "config.yaml"
             config_path.write_text(yaml.safe_dump(config), encoding="utf-8")
             spec = importlib.util.spec_from_file_location("_test_train_dual", ROOT / "train_dual.py")
@@ -168,6 +171,30 @@ class ValidationRhoWorkflowTest(unittest.TestCase):
 
     def test_legacy_fixed_rho_behavior_is_preserved(self):
         self.run_workflow(None, expected_epoch=2, expected_rho=0.3)
+
+    def test_default_mosei_config_uses_fixed_rho_without_grid(self):
+        self.run_workflow(
+            None, expected_epoch=2, expected_rho=0.3, use_default_config=True
+        )
+
+    def test_rollback_preserves_training_settings_and_uses_a_distinct_project(self):
+        configs = []
+        for filename in (
+            "mosei_dual_c4_intensity.yaml",
+            "mosei_dual_c4_intensity_rho030_lr2e-5.yaml",
+            "mosei_dual_c4_intensity_rho030_valrho_lr2e-5.yaml",
+        ):
+            with open(ROOT / "configs" / filename, encoding="utf-8") as file:
+                configs.append(yaml.safe_load(file))
+        current, fixed, grid = configs
+        self.assertIsNone(current["base"]["validation_rho_candidates"])
+        self.assertEqual(grid["base"]["validation_rho_candidates"], [0.0, 0.1, 0.2, 0.3])
+        names = [config["base"].pop("project_name") for config in configs]
+        self.assertEqual(len(set(names)), 3)
+        for config in configs:
+            config["base"].pop("validation_rho_candidates", None)
+        self.assertEqual(current, fixed)
+        self.assertEqual(current, grid)
 
 
 if __name__ == "__main__":

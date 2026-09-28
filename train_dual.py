@@ -431,6 +431,8 @@ def main():
     if rho_candidates is not None:
         print(f"Validation-only inference rho candidates: {rho_candidates}")
         print(f"Training rho remains fixed at {training_rho}")
+    else:
+        print(f"Checkpoint selection uses fixed training rho={training_rho}; no rho grid.")
     print(
         f"Primary: validation {selector.primary_metric} "
         f"({selector.primary_mode})"

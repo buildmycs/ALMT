@@ -2,7 +2,7 @@
 
 此文件记录已完成的固定 rho 选 checkpoint 实验，配置已归档为
 `configs/mosei_dual_c4_intensity_rho030_lr2e-5.yaml`。
-新的默认实验见 `MOSEI_VALIDATION_RHO_EXPERIMENT.md`，不要用当前默认配置复现本页。
+当前默认回退实验见 `MOSEI_FIXED_SELECTION_EXPERIMENT.md`，不要用当前默认配置复现本页。
 相对上一轮 `2e-5`
 实验，只将训练融合权重 `ordinal_prediction_weight` 从 `0.45` 调整为 `0.30`。
 学习率为 `2e-5`、有序损失权重为 `0.2`，训练预算为 100 epoch，LR warmup 为

@@ -1,6 +1,9 @@
 # MOSEI：先对齐 checkpoint 选择与最终推理方式
 
-本轮默认配置：`configs/mosei_dual_c4_intensity.yaml`。
+此页记录已完成的联合选择实验，不再是默认流程。配置已归档为
+`configs/mosei_dual_c4_intensity_rho030_valrho_lr2e-5.yaml`。
+当前默认已回退为固定 rho 选 checkpoint，见 `MOSEI_FIXED_SELECTION_EXPERIMENT.md`。
+以下保留该联合选择实验的设计与命令；不要复跑旧项目名覆盖已有结果。
 只改验证选择流程；训练保持 `lr=2e-5`、训练 rho=0.30、ordinal_weight=0.2、
 100 epoch、LR warmup=10 epoch、有序损失 warmup=5 epoch、seed=0。
 有序损失不衰减，对比学习仍关闭，不增加新的训练损失。
@@ -64,7 +67,7 @@
 
 ```bash
 python train_dual.py \
-  --config_file configs/mosei_dual_c4_intensity.yaml \
+  --config_file configs/mosei_dual_c4_intensity_rho030_valrho_lr2e-5.yaml \
   --gpu_id 0
 ```
 
@@ -79,7 +82,7 @@ ckpt/ALMT_MOSEI_Dual_C4_Intensity_rho030_ord020_fixed_e100_wu10_lr2e-5_valrho_se
 
 ```bash
 python scripts/evaluate_selected_test.py \
-  --config_file configs/mosei_dual_c4_intensity.yaml \
+  --config_file configs/mosei_dual_c4_intensity_rho030_valrho_lr2e-5.yaml \
   --gpu_id 0
 ```
 
