@@ -17,6 +17,9 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 if str(REPOSITORY_ROOT) not in sys.path:
     sys.path.insert(0, str(REPOSITORY_ROOT))
 
+from core.fusion_selection import resolve_inference_rho
+
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description=(
@@ -49,7 +52,7 @@ def parse_args():
         default=None,
         help=(
             "Inference-only rho selected on validation. This overrides the "
-            "YAML value without retraining or editing the config file."
+            "checkpoint's selected rho (or YAML value for legacy checkpoints)."
         ),
     )
     return parser.parse_args()
@@ -135,6 +138,8 @@ def save_artifacts(
         "labels": labels,
         "epoch": np.asarray(epoch, dtype=np.int64),
     }
+    if inference_rho is not None:
+        payload["inference_rho"] = np.asarray(inference_rho, dtype=np.float64)
     for key in ("regression_predictions", "ordinal_predictions"):
         if key in result:
             payload[key] = result[key].view(-1).numpy()
@@ -215,15 +220,6 @@ def main():
     configured_rho = float(
         getattr(args.model, "ordinal_prediction_weight", 0.0)
     )
-    inference_rho = (
-        configured_rho
-        if cli_args.ordinal_prediction_weight is None
-        else float(cli_args.ordinal_prediction_weight)
-    )
-    if not 0.0 <= inference_rho <= 1.0:
-        raise ValueError("--ordinal-prediction-weight must be in [0, 1]")
-    args.model.ordinal_prediction_weight = inference_rho
-
     gpu_id = args.base.gpu_id if cli_args.gpu_id is None else cli_args.gpu_id
     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -248,16 +244,29 @@ def main():
 
     print(f"Device: {device} ({gpu_id})")
     print(f"Checkpoint: {checkpoint_path}")
-    print(
-        "Ordinal prediction weight: "
-        f"configured={configured_rho:.6f}, inference={inference_rho:.6f}"
-    )
     checkpoint = torch.load(
         checkpoint_path,
         map_location=device,
         weights_only=False,
     )
     selection = checkpoint.get("selection")
+    inference_rho = resolve_inference_rho(
+        configured_rho, selection, cli_args.ordinal_prediction_weight
+    )
+    args.model.ordinal_prediction_weight = inference_rho
+    print(
+        "Ordinal prediction weight: "
+        f"configured={configured_rho:.6f}, inference={inference_rho:.6f}"
+    )
+    if (
+        cli_args.ordinal_prediction_weight is not None
+        and selection is not None
+        and "inference_rho" in selection
+        and inference_rho != selection["inference_rho"]
+    ):
+        print(
+            "Warning: explicitly overriding the checkpoint's validation-selected rho."
+        )
     if selection is None:
         print("Warning: checkpoint has no saved validation-selection metadata.")
     else:

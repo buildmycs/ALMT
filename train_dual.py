@@ -13,6 +13,11 @@ import yaml
 from tensorboardX import SummaryWriter
 
 from core.dataset_dual import DualTextMMDataLoader
+from core.fusion_selection import (
+    resolve_inference_rho,
+    select_validation_fusion,
+    validate_rho_candidates,
+)
 from core.intensity_objective import build_sentiment_objective
 from core.metric import MetricsTop
 from core.model_selection import ValidationMetricSelector
@@ -113,6 +118,10 @@ def _save_prediction_artifacts(
         "labels": labels,
         "epoch": np.asarray(epoch, dtype=np.int64),
     }
+    if "inference_rho" in epoch_ret:
+        prediction_payload["inference_rho"] = np.asarray(
+            epoch_ret["inference_rho"], dtype=np.float64
+        )
     for key in ("regression_predictions", "ordinal_predictions"):
         if key in epoch_ret:
             prediction_payload[key] = epoch_ret[key].view(-1).numpy()
@@ -266,7 +275,9 @@ def _save_legacy_test_summary(
     return report_path
 
 
-def run_epoch(model, data_loader, loss_fn, metrics_fn, optimizer=None):
+def run_epoch(
+    model, data_loader, loss_fn, metrics_fn, optimizer=None, collect_components=False
+):
     training = optimizer is not None
     model.train(training)
 
@@ -293,7 +304,7 @@ def run_epoch(model, data_loader, loss_fn, metrics_fn, optimizer=None):
                 audio,
                 text,
                 text_llm,
-                return_aux=loss_fn.requires_auxiliary_outputs,
+                return_aux=loss_fn.requires_auxiliary_outputs or collect_components,
             )
             loss, loss_values = loss_fn(model_output, label)
             loss.backward()
@@ -305,7 +316,7 @@ def run_epoch(model, data_loader, loss_fn, metrics_fn, optimizer=None):
                     audio,
                     text,
                     text_llm,
-                    return_aux=loss_fn.requires_auxiliary_outputs,
+                    return_aux=loss_fn.requires_auxiliary_outputs or collect_components,
                 )
                 loss, loss_values = loss_fn(model_output, label)
 
@@ -381,6 +392,20 @@ def main():
             f"{sorted(supported_protocols)}, got '{evaluation_protocol}'"
         )
     legacy_test_oracle = evaluation_protocol == "legacy_test_oracle"
+    rho_candidates = validate_rho_candidates(
+        getattr(args.base, "validation_rho_candidates", None)
+    )
+    if rho_candidates is not None:
+        if legacy_test_oracle:
+            raise ValueError(
+                "validation_rho_candidates requires validation_selected protocol"
+            )
+        if not model.use_intensity_objective:
+            raise ValueError(
+                "validation_rho_candidates requires the ordinal prediction head"
+            )
+    training_rho = model.ordinal_prediction_weight
+    selected_rho = training_rho
     training_results_recorder = results_recorder() if legacy_test_oracle else None
     validation_results_recorder = (
         results_recorder() if legacy_test_oracle else None
@@ -403,6 +428,9 @@ def main():
         ),
     )
     print("-----------------selection-----------------")
+    if rho_candidates is not None:
+        print(f"Validation-only inference rho candidates: {rho_candidates}")
+        print(f"Training rho remains fixed at {training_rho}")
     print(
         f"Primary: validation {selector.primary_metric} "
         f"({selector.primary_mode})"
@@ -434,7 +462,8 @@ def main():
             model, data_loader["train"], loss_fn, metrics_fn, optimizer
         )
         validation_ret = run_epoch(
-            model, data_loader["valid"], loss_fn, metrics_fn
+            model, data_loader["valid"], loss_fn, metrics_fn,
+            collect_components=rho_candidates is not None,
         )
         test_ret = (
             run_epoch(model, data_loader["test"], loss_fn, metrics_fn)
@@ -442,18 +471,32 @@ def main():
             else None
         )
 
-        if selector.consider(epoch, validation_ret):
+        selection_ret = select_validation_fusion(
+            validation_ret, rho_candidates, metrics_fn, selector
+        )
+        if selector.consider(epoch, selection_ret):
             selection_info = selector.as_dict()
+            if rho_candidates is not None:
+                selected_rho = selection_ret["inference_rho"]
+                selection_info.update(
+                    {
+                        "selection_split": "validation",
+                        "training_rho": training_rho,
+                        "inference_rho": selected_rho,
+                        "validation_rho_candidates": rho_candidates,
+                        "training_rho_validation_results": validation_ret["results"],
+                    }
+                )
             _save_best_checkpoint(
                 model=model,
                 optimizer=optimizer,
                 epoch=epoch,
-                validation_ret=validation_ret,
+                validation_ret=selection_ret,
                 selection_info=selection_info,
                 save_path=save_path,
             )
             _save_prediction_artifacts(
-                epoch_ret=validation_ret,
+                epoch_ret=selection_ret,
                 dataset=data_loader["valid"].dataset,
                 epoch=epoch,
                 save_path=save_path,
@@ -484,6 +527,12 @@ def main():
         print(f'Learning Rate: {optimizer.param_groups[0]["lr"]}')
         print(f'Training Results: {training_ret["results"]}')
         print(f'Validation Results: {validation_ret["results"]}')
+        if rho_candidates is not None:
+            print(
+                f'Validation Inference Results (rho={selection_ret["inference_rho"]}): '
+                f'{selection_ret["results"]}'
+            )
+            print(f"Selected inference rho: {selected_rho}")
         if legacy_test_oracle:
             best_validation_results = (
                 validation_results_recorder.get_best_results()
@@ -538,6 +587,13 @@ def main():
         )
         for name, value in validation_ret["results"].items():
             writer.add_scalar(f"valid/{name}", value, epoch)
+        if rho_candidates is not None:
+            for name, value in selection_ret["results"].items():
+                writer.add_scalar(f"valid_selection/{name}", value, epoch)
+            writer.add_scalar(
+                "valid_selection/rho", selection_ret["inference_rho"], epoch
+            )
+            writer.add_scalar("valid_selection/best_rho", selected_rho, epoch)
         for prediction_name in (
             "regression_predictions",
             "ordinal_predictions",
@@ -605,10 +661,18 @@ def main():
         weights_only=False,
     )
     model.load_state_dict(checkpoint["state_dict"])
-    selected_epoch = selector.selected_epoch
+    selection_info = checkpoint["selection"]
+    selected_epoch = selection_info["selected_epoch"]
+    model.ordinal_prediction_weight = resolve_inference_rho(
+        training_rho, selection_info
+    )
     loss_fn.set_epoch(selected_epoch)
-    test_ret = run_epoch(model, data_loader["test"], loss_fn, metrics_fn)
-    selection_info = selector.as_dict()
+    test_ret = run_epoch(
+        model, data_loader["test"], loss_fn, metrics_fn,
+        collect_components=rho_candidates is not None,
+    )
+    if rho_candidates is not None:
+        test_ret["inference_rho"] = model.ordinal_prediction_weight
     _save_selected_test_artifacts(
         test_ret=test_ret,
         test_dataset=data_loader["test"].dataset,
@@ -627,6 +691,7 @@ def main():
         f"at epoch {selected_epoch}"
     )
     print(f"Validation Results: {selector.selected_validation_results}")
+    print(f"Inference rho: {model.ordinal_prediction_weight}")
     print(f'Test Results: {test_ret["results"]}')
     print("-------------------------------------------------------\n")
 

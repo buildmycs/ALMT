@@ -1,6 +1,9 @@
 # MOSEI：训练融合权重 0.30 对照实验
 
-本轮默认配置为 `configs/mosei_dual_c4_intensity.yaml`。相对上一轮 `2e-5`
+此文件记录已完成的固定 rho 选 checkpoint 实验，配置已归档为
+`configs/mosei_dual_c4_intensity_rho030_lr2e-5.yaml`。
+新的默认实验见 `MOSEI_VALIDATION_RHO_EXPERIMENT.md`，不要用当前默认配置复现本页。
+相对上一轮 `2e-5`
 实验，只将训练融合权重 `ordinal_prediction_weight` 从 `0.45` 调整为 `0.30`。
 学习率为 `2e-5`、有序损失权重为 `0.2`，训练预算为 100 epoch，LR warmup 为
 10 epoch，有序损失 warmup 为 5 epoch，seed 为 0；对比学习关闭，有序损失不衰减。
@@ -53,7 +56,7 @@ RUN_NAME=ALMT_MOSEI_Dual_C4_Intensity_rho030_ord020_fixed_e100_wu10_lr2e-5_seed0
 RUN_DIR="ckpt/$RUN_NAME"
 
 python train_dual.py \
-  --config_file configs/mosei_dual_c4_intensity.yaml \
+  --config_file configs/mosei_dual_c4_intensity_rho030_lr2e-5.yaml \
   --gpu_id 0
 
 python scripts/bestweight.py \
@@ -68,7 +71,7 @@ python scripts/bestweight.py \
 RHO=$(python -c 'import json, sys; print(json.load(open(sys.argv[1], encoding="utf-8"))["best"]["rho"])' "$RUN_DIR/rho_search_validation/rho_search_summary.json")
 
 python scripts/evaluate_selected_test.py \
-  --config_file configs/mosei_dual_c4_intensity.yaml \
+  --config_file configs/mosei_dual_c4_intensity_rho030_lr2e-5.yaml \
   --checkpoint "$RUN_DIR/best_validation_model.pth" \
   --ordinal-prediction-weight "$RHO" \
   --output-dir "$RUN_DIR/rho_${RHO}_test" \
