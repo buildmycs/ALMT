@@ -1,0 +1,61 @@
+{
+  "prediction_file": "ckpt/ALMT_MOSEI_Dual_C4_Intensity_rho030_ord020_fixed_e100_wu10_lr2e-5_valrho_seed0/best_validation_predictions.npz",
+  "sample_count": 1871,
+  "acc7": 0.4243719935863175,
+  "macro_recall": 0.4433788450360422,
+  "macro_f1": 0.34635610672623607,
+  "mae": 0.7280463778928026,
+  "correlation": 0.7381412432190025,
+  "rounding": "np.round(np.clip(value, -3, 3))",
+  "per_class": {
+    "-3": {
+      "recall": 0.75,
+      "precision": 0.18,
+      "f1": 0.2903225806451613,
+      "support": 24,
+      "predicted": 100
+    },
+    "-2": {
+      "recall": 0.43636363636363634,
+      "precision": 0.23414634146341465,
+      "f1": 0.30476190476190473,
+      "support": 110,
+      "predicted": 205
+    },
+    "-1": {
+      "recall": 0.3073770491803279,
+      "precision": 0.2717391304347826,
+      "f1": 0.28846153846153844,
+      "support": 244,
+      "predicted": 276
+    },
+    "0": {
+      "recall": 0.429940119760479,
+      "precision": 0.6877394636015326,
+      "f1": 0.529108327192336,
+      "support": 835,
+      "predicted": 522
+    },
+    "1": {
+      "recall": 0.41914893617021276,
+      "precision": 0.4264069264069264,
+      "f1": 0.4227467811158798,
+      "support": 470,
+      "predicted": 462
+    },
+    "2": {
+      "recall": 0.5502958579881657,
+      "precision": 0.3333333333333333,
+      "f1": 0.4151785714285714,
+      "support": 169,
+      "predicted": 279
+    },
+    "3": {
+      "recall": 0.21052631578947367,
+      "precision": 0.14814814814814814,
+      "f1": 0.17391304347826086,
+      "support": 19,
+      "predicted": 27
+    }
+  }
+}
