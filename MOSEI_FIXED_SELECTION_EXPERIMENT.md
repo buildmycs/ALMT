@@ -1,6 +1,8 @@
 # MOSEI：回退到固定 rho 选择 checkpoint
 
-默认配置仍为 `configs/mosei_dual_c4_intensity.yaml`。
+此页记录 ordinal_weight=0.2 的固定选择基线，配置已归档为
+`configs/mosei_dual_c4_intensity_rho030_ord020_fixedselect_lr2e-5.yaml`。
+当前默认的 0.3/0.15 单变量实验见 `MOSEI_ORD015_EXPERIMENT.md`。
 本次只回退 checkpoint 选择方式，不调整模型结构、损失、学习率或训练轮数。
 
 - `lr=2e-5`、训练 `ordinal_prediction_weight=0.30`、`ordinal_weight=0.2`。
@@ -18,7 +20,7 @@ epoch 80/rho=0.1 的日志为 54.6232%、MAE 约 0.5044，前者只多判对一�
 
 ```bash
 python train_dual.py \
-  --config_file configs/mosei_dual_c4_intensity.yaml \
+  --config_file configs/mosei_dual_c4_intensity_rho030_ord020_fixedselect_lr2e-5.yaml \
   --gpu_id 0
 ```
 
@@ -49,7 +51,7 @@ python scripts/bestweight.py \
 RHO=$(python -c 'import json, sys; print(json.load(open(sys.argv[1], encoding="utf-8"))["best"]["rho"])' "$RUN_DIR/rho_search_validation/rho_search_summary.json")
 
 python scripts/evaluate_selected_test.py \
-  --config_file configs/mosei_dual_c4_intensity.yaml \
+  --config_file configs/mosei_dual_c4_intensity_rho030_ord020_fixedselect_lr2e-5.yaml \
   --checkpoint "$RUN_DIR/best_validation_model.pth" \
   --ordinal-prediction-weight "$RHO" \
   --output-dir "$RUN_DIR/rho_${RHO}_test" \

@@ -180,7 +180,7 @@ class ValidationRhoWorkflowTest(unittest.TestCase):
     def test_rollback_preserves_training_settings_and_uses_a_distinct_project(self):
         configs = []
         for filename in (
-            "mosei_dual_c4_intensity.yaml",
+            "mosei_dual_c4_intensity_rho030_ord020_fixedselect_lr2e-5.yaml",
             "mosei_dual_c4_intensity_rho030_lr2e-5.yaml",
             "mosei_dual_c4_intensity_rho030_valrho_lr2e-5.yaml",
         ):
@@ -195,6 +195,25 @@ class ValidationRhoWorkflowTest(unittest.TestCase):
             config["base"].pop("validation_rho_candidates", None)
         self.assertEqual(current, fixed)
         self.assertEqual(current, grid)
+
+    def test_ordinal015_trial_changes_only_loss_weight_and_project_name(self):
+        configs = []
+        for filename in (
+            "mosei_dual_c4_intensity.yaml",
+            "mosei_dual_c4_intensity_rho030_ord020_fixedselect_lr2e-5.yaml",
+        ):
+            with open(ROOT / "configs" / filename, encoding="utf-8") as file:
+                configs.append(yaml.safe_load(file))
+        trial, baseline = configs
+        self.assertIsNone(trial["base"]["validation_rho_candidates"])
+        self.assertEqual(trial["objective"]["ordinal_weight"], 0.15)
+        self.assertEqual(baseline["objective"]["ordinal_weight"], 0.2)
+        self.assertNotEqual(
+            trial["base"].pop("project_name"),
+            baseline["base"].pop("project_name"),
+        )
+        trial["objective"]["ordinal_weight"] = 0.2
+        self.assertEqual(trial, baseline)
 
 
 if __name__ == "__main__":

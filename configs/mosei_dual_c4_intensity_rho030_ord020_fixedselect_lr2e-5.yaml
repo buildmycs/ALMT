@@ -1,12 +1,12 @@
 base:
-  project_name: ALMT_MOSEI_Dual_C4_Intensity_rho030_ord015_fixed_e100_wu10_lr2e-5_fixedselect_seed0
+  project_name: ALMT_MOSEI_Dual_C4_Intensity_rho030_ord020_fixed_e100_wu10_lr2e-5_fixedselect_seed0
   ckpt_root: ./ckpt
   seed: 0
-  # Keep LR and fixed-rho selection unchanged; only reduce ordinal loss weight.
+  # Restore fixed training-rho checkpoint selection; keep optimization unchanged.
   lr: 0.00002
   weight_decay: 0.0001
   batch_size: 32
-  # Preserve the baseline warm-up and cosine schedule for the loss-weight comparison.
+  # Preserve the baseline warm-up and cosine schedule for the selection comparison.
   # Validation Acc-7 selects the checkpoint within this training budget.
   n_epochs: 100
   # Ten epochs exactly reproduces a 10% LR warm-up for this 100-epoch run.
@@ -80,8 +80,7 @@ model:
 
 objective:
   regression_weight: 1.0
-  # Single-variable trial: reduce auxiliary ordinal supervision by 25%.
-  ordinal_weight: 0.15
+  ordinal_weight: 0.2
   contrastive_weight: 0.0
   contrastive_temperature: 0.1
   contrastive_label_temperature: 0.5
