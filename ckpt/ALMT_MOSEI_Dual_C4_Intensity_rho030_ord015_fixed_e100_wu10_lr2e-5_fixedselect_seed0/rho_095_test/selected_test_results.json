@@ -1,37 +1,37 @@
 {
   "evaluation_protocol": "single_test_evaluation_of_validation_selected_checkpoint",
   "config_file": "configs/mosei_dual_c4_intensity.yaml",
-  "selected_epoch": 95,
+  "selected_epoch": 87,
   "validation_selection": {
-    "selected_epoch": 95,
+    "selected_epoch": 87,
     "primary_metric": "Mult_acc_7",
     "primary_mode": "max",
-    "primary_value": 0.5424906611442566,
+    "primary_value": 0.546766459941864,
     "secondary_metric": "MAE",
     "secondary_mode": "min",
-    "secondary_value": 0.5074918270111084,
+    "secondary_value": 0.5068686008453369,
     "validation_results": {
-      "Has0_acc_2": 0.8332,
-      "Has0_F1_score": 0.8384,
-      "Non0_acc_2": 0.8679,
-      "Non0_F1_score": 0.8679,
-      "Mult_acc_5": 0.5623,
-      "Mult_acc_7": 0.5425,
-      "MAE": 0.5074999928474426,
-      "Corr": 0.765
+      "Has0_acc_2": 0.8365,
+      "Has0_F1_score": 0.8412,
+      "Non0_acc_2": 0.8672,
+      "Non0_F1_score": 0.8671,
+      "Mult_acc_5": 0.5649,
+      "Mult_acc_7": 0.5468,
+      "MAE": 0.5069000124931335,
+      "Corr": 0.766
     }
   },
   "configured_ordinal_prediction_weight": 0.3,
-  "inference_ordinal_prediction_weight": 0.8,
+  "inference_ordinal_prediction_weight": 0.9,
   "test_sample_count": 4659,
   "test_results": {
-    "Has0_acc_2": 0.7993,
-    "Has0_F1_score": 0.8066,
-    "Non0_acc_2": 0.8533,
-    "Non0_F1_score": 0.8541,
-    "Mult_acc_5": 0.5334,
-    "Mult_acc_7": 0.5035,
-    "MAE": 0.5741000175476074,
-    "Corr": 0.7842
+    "Has0_acc_2": 0.768,
+    "Has0_F1_score": 0.7782,
+    "Non0_acc_2": 0.8302,
+    "Non0_F1_score": 0.8324,
+    "Mult_acc_5": 0.5505,
+    "Mult_acc_7": 0.5229,
+    "MAE": 0.5929999947547913,
+    "Corr": 0.773
   }
 }

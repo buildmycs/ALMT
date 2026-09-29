@@ -81,7 +81,7 @@ model:
 objective:
   regression_weight: 1.0
   # Single-variable trial: reduce auxiliary ordinal supervision by 25%.
-  ordinal_weight: 0.15
+  ordinal_weight: 0.25
   contrastive_weight: 0.0
   contrastive_temperature: 0.1
   contrastive_label_temperature: 0.5
